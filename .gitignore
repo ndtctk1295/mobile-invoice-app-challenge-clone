@@ -1,0 +1,23 @@
+
+# Repo root .gitignore
+# This repository keeps the actual project inside the `my-app/` directory.
+# Ignore everything at repo root, then explicitly re-include `my-app/` so
+# all source files are tracked from that directory. Let `my-app/.gitignore`
+# handle ignores local to the project (node_modules, .expo, etc.).
+
+# Ignore everything
+/*
+
+# But keep this file
+!.gitignore
+
+# Re-include the project directory and all its contents
+!/my-app/
+!/my-app/**
+
+# Keep designs folder (do not ignore)
+!/designs/
+!/designs/**
+
+# Small sensible top-level ignores that are not part of the project source
+.DS_Store
