@@ -14,13 +14,35 @@ export const Colors = {
     icon: '#687076',
     tabIconDefault: '#687076',
     tabIconSelected: tintColorLight,
+    // Additional colors for invoicing app
+    primary: '#7C5DFA',
+    secondary: '#9277FF',
+    danger: '#EC5757',
+    success: '#33D69F',
+    warning: '#FF8F00',
+    info: '#0a7ea4',
+    muted: '#888EB0',
+    border: '#DFE3FA',
+    cardBackground: '#F9FAFE',
+    inputBackground: '#F8F8FB',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#DFE3FA', // Figma: text on dark
+    background: '#141625', // Figma: app background
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
+    icon: '#7E88C3', // Figma: icon color
+    tabIconDefault: '#7E88C3',
     tabIconSelected: tintColorDark,
+    // Additional colors for invoicing app
+    primary: '#7C5DFA',
+    secondary: '#9277FF',
+    danger: '#EC5757',
+    success: '#33D69F',
+    warning: '#FF8F00',
+    info: '#0a7ea4',
+    muted: '#888EB0', // Figma: muted/label
+    border: '#252945', // Figma: border
+    cardBackground: '#1E2139', // Figma: card background
+    inputBackground: '#252945', // Figma: input background
   },
 };
