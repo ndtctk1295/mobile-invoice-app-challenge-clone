@@ -75,10 +75,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 24,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.18,
-    shadowRadius: 20,
     elevation: 6,
   },
   rowBetween: {

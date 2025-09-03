@@ -54,7 +54,6 @@ export function CustomBackButton({ onPress }: CustomBackButtonProps) {
 
 const styles = StyleSheet.create({
   container: {
-    paddingHorizontal: 20,
     paddingVertical: 12,
   },
   content: {

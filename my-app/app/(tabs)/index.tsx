@@ -83,7 +83,7 @@ export default function HomeScreen() {
         </ThemedView>
         <ToolbarComponent onFilterChange={handleFilterChange} />
       </ThemedView>
-    { filteredInvoices.length > 0 ? (
+      {filteredInvoices.length > 0 ? (
         <FlatList
           style={{ backgroundColor: '#00000000' }}
           data={filteredInvoices}
@@ -91,10 +91,10 @@ export default function HomeScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
-      refreshing={isLoading}
-      onRefresh={initializeStore}
+          refreshing={isLoading}
+          onRefresh={initializeStore}
         />
-      ) : renderNoInvoice() }
+      ) : renderNoInvoice()}
     </ThemedView>
   );
 
