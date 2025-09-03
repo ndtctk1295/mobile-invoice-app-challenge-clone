@@ -1,5 +1,5 @@
 import { useLocalSearchParams, router } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   Text, 
@@ -7,7 +7,7 @@ import {
   ScrollView, 
   TouchableOpacity 
 } from 'react-native';
-import { useInvoices } from '@/hooks/useInvoices';
+import useInvoiceStore from '@/stores/useInvoiceStore';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { DeletePrompt } from '@/components/DeletePrompt';
@@ -17,11 +17,21 @@ import { Invoice } from '@/types/Invoice';
 
 export default function InvoiceDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { invoices, loading } = useInvoices();
+  const isLoading = useInvoiceStore(s => s.isLoading);
+  const isLoaded = useInvoiceStore(s => s.isLoaded);
+  const initializeStore = useInvoiceStore(s => s.initializeStore);
+  const deleteInvoice = useInvoiceStore(s => s.deleteInvoice);
+  const markAsPaid = useInvoiceStore(s => s.markAsPaid);
+  const invoice = useInvoiceStore(s => s.invoices.find(inv => inv.id === id));
   const { colorScheme } = useTheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const invoice = useMemo(() => invoices.find(inv => inv.id === id), [invoices, id]);
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
+
+  useEffect(() => {
+    if (!isLoaded) {
+      initializeStore();
+    }
+  }, [isLoaded, initializeStore]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -70,10 +80,11 @@ export default function InvoiceDetailScreen() {
   };
 
   const handleConfirmDelete = () => {
-    // TODO: Implement delete functionality
-    console.log('Delete invoice:', id);
-    setShowDeletePrompt(false);
-    router.back();
+    if (!id) return;
+    deleteInvoice(id).then(() => {
+      setShowDeletePrompt(false);
+      router.back();
+    });
   };
 
   const handleCancelDelete = () => {
@@ -81,11 +92,11 @@ export default function InvoiceDetailScreen() {
   };
 
   const handleMarkAsPaid = () => {
-    // TODO: Implement mark as paid functionality
-    console.log('Mark as paid:', id);
+    if (!id) return;
+    markAsPaid(id).catch(() => {});
   };
 
-  if (loading) {
+  if (isLoading && !isLoaded) {
     return (
       <ThemedView style={[styles.container, { backgroundColor: colors.background }]}>
         <View style={styles.loadingContainer}>

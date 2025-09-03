@@ -7,12 +7,60 @@ import { Asset } from "expo-asset";
 import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/context/ThemeContext";
 import { router } from "expo-router";
-export default function ToolbarComponent() {
+import { useState } from "react";
+
+interface ToolbarProps {
+    onFilterChange?: (filters: string[]) => void;
+}
+
+export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
     const { colorScheme } = useTheme();
     const colors = Colors[colorScheme ?? 'light'];
+    const [showFilters, setShowFilters] = useState(false);
+    const [selectedFilters, setSelectedFilters] = useState<string[]>(['All']);
     
     const handleNewPress = () => {
         router.push('/invoice/create');
+    };
+
+    const handleFilterPress = () => {
+        setShowFilters(!showFilters);
+    };
+
+    const handleFilterSelect = (filter: string) => {
+        let newFilters: string[];
+        
+        if (filter === 'All') {
+            newFilters = ['All'];
+        } else {
+            // Remove 'All' if it's selected and user selects a specific filter
+            const filtersWithoutAll = selectedFilters.filter(f => f !== 'All');
+            
+            if (selectedFilters.includes(filter)) {
+                // Remove the filter if it's already selected
+                newFilters = filtersWithoutAll.filter(f => f !== filter);
+                // If no filters left, select 'All'
+                if (newFilters.length === 0) {
+                    newFilters = ['All'];
+                }
+            } else {
+                // Add the filter
+                newFilters = [...filtersWithoutAll, filter];
+            }
+        }
+        
+        setSelectedFilters(newFilters);
+        onFilterChange?.(newFilters);
+    };
+
+    const getFilterLabel = () => {
+        if (selectedFilters.includes('All') || selectedFilters.length === 0) {
+            return 'Filter';
+        } else if (selectedFilters.length === 1) {
+            return selectedFilters[0];
+        } else {
+            return `${selectedFilters.length} filters`;
+        }
     };
     
     // Figma: background #0C0E16, borderRadius 8, label #BCBDC1, font 18px, icon right
@@ -20,11 +68,11 @@ export default function ToolbarComponent() {
         <ThemedView
             style={styles.toolbarContainer}
         >
-            <View style={styles.filterContainer}>
+            <TouchableOpacity style={styles.filterContainer} onPress={handleFilterPress}>
                 <ThemedText
                     style={[styles.filterText, { color: colors.text }]}
                 >
-                    Filter
+                    {getFilterLabel()}
                 </ThemedText>
                 <SvgUri
                     uri={Asset.fromModule(require('@/assets/icon-arrow-down.svg')).uri}
@@ -32,7 +80,35 @@ export default function ToolbarComponent() {
                     width={10}
                     height={10}
                 />
-            </View>
+            </TouchableOpacity>
+
+            {/* Filter Dropdown */}
+            {showFilters && (
+                <ThemedView style={[styles.filterDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+                    {['All', 'Draft', 'Pending', 'Paid'].map((filter) => (
+                        <TouchableOpacity
+                            key={filter}
+                            style={styles.filterOption}
+                            onPress={() => handleFilterSelect(filter)}
+                        >
+                            <View style={styles.filterOptionContent}>
+                                <View style={[styles.checkbox, selectedFilters.includes(filter) && { backgroundColor: colors.primary }]}>
+                                    {selectedFilters.includes(filter) && (
+                                        <SvgUri
+                                            uri={Asset.fromModule(require('@/assets/icon-check.svg')).uri}
+                                            width={10}
+                                            height={8}
+                                        />
+                                    )}
+                                </View>
+                                <ThemedText style={[styles.filterOptionText, { color: colors.text }]}>
+                                    {filter}
+                                </ThemedText>
+                            </View>
+                        </TouchableOpacity>
+                    ))}
+                </ThemedView>
+            )}
 
             {/* New Button */}
             <TouchableOpacity
@@ -75,6 +151,7 @@ const styles = StyleSheet.create({
         minWidth: 80,
         minHeight: 40,
         marginLeft: 16,
+        position: 'relative',
     },
     addNewButton: {
         flexDirection: 'row',
@@ -104,7 +181,9 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         marginRight: 16,
-        gap: 12
+        gap: 12,
+        paddingHorizontal: 12,
+        paddingVertical: 8,
     },
     filterText: {
         // color: '#BCBDC1',
@@ -112,5 +191,44 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         // fontFamily: 'Inter',
         // marginRight: 10,
+    },
+    filterDropdown: {
+        position: 'absolute',
+        top: 50,
+        left: 0,
+        right: 0,
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingVertical: 8,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+        zIndex: 1000,
+        minWidth: 160,
+    },
+    filterOption: {
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+    },
+    filterOptionContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+    },
+    checkbox: {
+        width: 16,
+        height: 16,
+        borderWidth: 1,
+        borderColor: '#DFE3FA',
+        borderRadius: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    filterOptionText: {
+        fontSize: 14,
+        fontWeight: '700',
+        letterSpacing: -0.25,
     },
 })

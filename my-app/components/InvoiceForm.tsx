@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
-import { useForm, Controller, useFieldArray } from 'react-hook-form';
+import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { format } from 'date-fns';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -10,33 +12,54 @@ import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import { Invoice } from '@/types/Invoice';
 
-export type FormValues = {
-  id: string;
-  createdAt: string;
-  paymentDue: string;
-  description: string;
-  paymentTerms: number;
-  clientName: string;
-  clientEmail: string;
-  status: 'draft' | 'pending' | 'paid';
-  senderAddress: { street: string; city: string; postCode: string; country: string };
-  clientAddress: { street: string; city: string; postCode: string; country: string };
-  items: Array<{ name: string; quantity: number; price: number; total: number }>;
-  total: number;
-};
+// Zod schema and derived form values type
+const AddressSchema = z.object({
+  street: z.string().min(1, 'Street is required'),
+  city: z.string().min(1, 'City is required'),
+  postCode: z.string().min(1, 'Post code is required'),
+  country: z.string().min(1, 'Country is required'),
+});
+
+const ItemSchema = z.object({
+  name: z.string().min(1, 'Item name is required'),
+  quantity: z.number().min(1, 'Qty must be at least 1'),
+  price: z.number().min(0, 'Price must be at least 0'),
+  total: z.number().min(0),
+});
+
+const InvoiceSchema = z.object({
+  id: z.string().min(1),
+  createdAt: z.string().refine(v => !isNaN(Date.parse(v)), { message: 'Invalid date' }),
+  paymentDue: z.string(),
+  description: z.string().min(1, 'Project description is required'),
+  paymentTerms: z.number().int().positive(),
+  clientName: z.string().min(1, 'Client name is required'),
+  clientEmail: z.string().email('Invalid email address'),
+  status: z.enum(['draft', 'pending', 'paid']),
+  senderAddress: AddressSchema,
+  clientAddress: AddressSchema,
+  items: z.array(ItemSchema).min(1, 'At least one item is required'),
+  total: z.number().min(0),
+});
+
+export type FormValues = z.infer<typeof InvoiceSchema>;
 
 interface InvoiceFormProps {
   initialData?: Invoice | null;
   mode: 'create' | 'edit';
   onSubmit: (data: FormValues) => void;
+  onSaveAsDraft?: (data: FormValues) => void;
   onCancel?: () => void;
+  isLoading?: boolean;
 }
 
-export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFormProps) {
+export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCancel, isLoading }: InvoiceFormProps) {
   const { colorScheme } = useTheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [showTerms, setShowTerms] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+
+  // Schema declared at module scope above
 
   const generateInvoiceId = () => {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -55,7 +78,8 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
     return result;
   };
 
-  const { control, handleSubmit, reset, watch } = useForm<FormValues>({
+  const { control, handleSubmit, reset, watch, getValues, setValue, formState: { errors } } = useForm<FormValues>({
+    resolver: zodResolver(InvoiceSchema),
     defaultValues: {
       id: mode === 'create' ? generateInvoiceId() : '',
       createdAt: mode === 'create' ? new Date().toISOString().split('T')[0] : '',
@@ -87,6 +111,19 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
   }, [initialData, mode, reset]);
 
   const values = watch();
+  // Keep paymentDue in sync when createdAt or paymentTerms change
+  useEffect(() => {
+    if (!values.createdAt || !values.paymentTerms) return;
+    const createdDate = new Date(values.createdAt);
+    const dueDate = new Date(createdDate);
+    dueDate.setDate(createdDate.getDate() + Number(values.paymentTerms || 0));
+    const paymentDue = dueDate.toISOString().split('T')[0];
+    // Avoid infinite loop by only updating when changed
+    if (values.paymentDue !== paymentDue) {
+      setValue('paymentDue', paymentDue, { shouldValidate: false, shouldDirty: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [values.createdAt, values.paymentTerms]);
   const recalcTotal = (items: FormValues['items']) => items.reduce((sum, it) => sum + (Number(it.total) || 0), 0);
 
   const onAddItem = () => {
@@ -95,21 +132,12 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
 
   const onRemoveItem = (index: number) => remove(index);
 
-  const onUpdateItemField = (index: number, patch: Partial<{ name: string; quantity: number; price: number }>) => {
-    const current = values.items?.[index] ?? { name: '', quantity: 0, price: 0, total: 0 };
-    const next = { ...current, ...patch } as any;
-    const qty = Number(next.quantity) || 0;
-    const price = Number(next.price) || 0;
-    next.total = Number((qty * price).toFixed(2));
-    update(index, next);
-  };
-
-  const handleFormSubmit = (data: FormValues) => {
+  const handleFormSubmit: SubmitHandler<FormValues> = (data) => {
     // Recalculate total before submitting
     const finalData = {
       ...data,
       total: recalcTotal(data.items),
-    };
+    } as FormValues;
     onSubmit(finalData);
   };
 
@@ -133,16 +161,25 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
               <LabeledInput label="Street Address" value={value} onChangeText={onChange} colors={colors} />
             )}
           />
+          {errors.senderAddress?.street && (
+            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.street.message)}</ThemedText>
+          )}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
             <View style={{ flex: 1 }}>
               <Controller control={control} name="senderAddress.city" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
+              {errors.senderAddress?.city && (
+                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.city.message)}</ThemedText>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Controller control={control} name="senderAddress.postCode" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
+              {errors.senderAddress?.postCode && (
+                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.postCode.message)}</ThemedText>
+              )}
             </View>
           </View>
           <View style={{ marginTop: 4 }}>
@@ -150,6 +187,9 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
               <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
             )}
             />
+            {errors.senderAddress?.country && (
+              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.country.message)}</ThemedText>
+            )}
           </View>
         </Section>
 
@@ -158,28 +198,46 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
           <Controller control={control} name="clientName" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Client's Name" value={value} onChangeText={onChange} colors={colors} />
           )} />
+          {errors.clientName && (
+            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientName.message)}</ThemedText>
+          )}
           <Controller control={control} name="clientEmail" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Client's Email" value={value} onChangeText={onChange} colors={colors} keyboardType="email-address" />
           )} />
+          {errors.clientEmail && (
+            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientEmail.message)}</ThemedText>
+          )}
           <Controller control={control} name="clientAddress.street" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Street Address" value={value} onChangeText={onChange} colors={colors} />
           )} />
+          {errors.clientAddress?.street && (
+            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.street.message)}</ThemedText>
+          )}
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
             <View style={{ flex: 1 }}>
               <Controller control={control} name="clientAddress.city" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
+              {errors.clientAddress?.city && (
+                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.city.message)}</ThemedText>
+              )}
             </View>
             <View style={{ flex: 1 }}>
               <Controller control={control} name="clientAddress.postCode" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
+              {errors.clientAddress?.postCode && (
+                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.postCode.message)}</ThemedText>
+              )}
             </View>
           </View>
           <View style={{ marginTop: 4 }}>
             <Controller control={control} name="clientAddress.country" render={({ field: { onChange, value } }) => (
               <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
             )} />
+            {errors.clientAddress?.country && (
+              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.country.message)}</ThemedText>
+            )}
           </View>
 
           {/* Invoice Date */}
@@ -200,6 +258,9 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
                 />
               );
             }} />
+            {errors.createdAt && (
+              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.createdAt.message)}</ThemedText>
+            )}
           </View>
 
           {/* Payment Terms */}
@@ -224,7 +285,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
             {showTerms && (
               <ThemedView style={[styles.dropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                 {[1, 7, 14, 30].map(v => (
-                  <TouchableOpacity key={v} onPress={() => { reset({ ...values, paymentTerms: v }); setShowTerms(false); }} style={styles.dropdownItem}>
+                  <TouchableOpacity key={v} onPress={() => { setValue('paymentTerms', v, { shouldValidate: true, shouldDirty: true }); setShowTerms(false); }} style={styles.dropdownItem}>
                     <ThemedText>Net {v} Days</ThemedText>
                   </TouchableOpacity>
                 ))}
@@ -237,6 +298,9 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
             <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
               <LabeledInput label="Project Description" value={value} onChangeText={onChange} colors={colors} />
             )} />
+            {errors.description && (
+              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.description.message)}</ThemedText>
+            )}
           </View>
         </Section>
 
@@ -250,21 +314,56 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
               {/* Item Name - Full Width */}
               <View style={{ marginBottom: 16 }}>
                 <Controller control={control} name={`items.${idx}.name` as const} render={({ field: { onChange, value } }) => (
-                  <LabeledInput label="Item Name" value={String(value ?? '')} onChangeText={(t) => onUpdateItemField(idx, { name: t })} colors={colors} />
+                  <LabeledInput label="Item Name" value={String(value ?? '')} onChangeText={onChange} colors={colors} />
                 )} />
+                {errors.items?.[idx]?.name && (
+                  <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.name?.message)}</ThemedText>
+                )}
               </View>
               
               {/* Qty, Price, Total Row */}
               <View style={styles.itemRow}>
                 <View style={styles.qtyContainer}>
                   <Controller control={control} name={`items.${idx}.quantity` as const} render={({ field: { onChange, value } }) => (
-                    <LabeledInput compact label="Qty." value={String(value ?? '')} onChangeText={(t) => onUpdateItemField(idx, { quantity: Number(t) })} colors={colors} keyboardType="numeric" />
+                    <LabeledInput
+                      compact
+                      label="Qty."
+                      value={String(value ?? '')}
+                      onChangeText={(t) => {
+                        const num = Number(t);
+                        onChange(num);
+                        const price = Number(getValues(`items.${idx}.price`) || 0);
+                        const total = Number(((num || 0) * price).toFixed(2));
+                        setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
+                      }}
+                      colors={colors}
+                      keyboardType="numeric"
+                    />
                   )} />
+                  {errors.items?.[idx]?.quantity && (
+                    <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.quantity?.message)}</ThemedText>
+                  )}
                 </View>
                 <View style={styles.priceContainer}>
                   <Controller control={control} name={`items.${idx}.price` as const} render={({ field: { onChange, value } }) => (
-                    <LabeledInput compact label="Price" value={String(value ?? '')} onChangeText={(t) => onUpdateItemField(idx, { price: Number(t) })} colors={colors} keyboardType="decimal-pad" />
+                    <LabeledInput
+                      compact
+                      label="Price"
+                      value={String(value ?? '')}
+                      onChangeText={(t) => {
+                        const num = Number(t);
+                        onChange(num);
+                        const qty = Number(getValues(`items.${idx}.quantity`) || 0);
+                        const total = Number((qty * (num || 0)).toFixed(2));
+                        setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
+                      }}
+                      colors={colors}
+                      keyboardType="decimal-pad"
+                    />
                   )} />
+                  {errors.items?.[idx]?.price && (
+                    <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.price?.message)}</ThemedText>
+                  )}
                 </View>
                 <View style={styles.totalContainer}>
                   <View style={styles.totalLabelContainer}>
@@ -289,6 +388,9 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
               </View>
             </View>
           ))}
+          {errors.items && typeof errors.items?.message === 'string' && (
+            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items.message)}</ThemedText>
+          )}
 
           <TouchableOpacity onPress={onAddItem} activeOpacity={0.9}
             style={[styles.addButton, { backgroundColor: colors.inputBackground }]}>
@@ -304,26 +406,65 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
       </ScrollView>
 
       {/* Action Buttons */}
-      
-      <View style={[styles.actionButtons, { backgroundColor: colors.background }]}>
-        <View style={{flex: 2}}></View>
-        {onCancel && (
-          <TouchableOpacity 
-            onPress={onCancel}
-            style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBackground }]}
-          >
-            <ThemedText style={[styles.buttonText, { color: colors.muted }]}>Cancel</ThemedText>
-          </TouchableOpacity>
+      <View style={[styles.actionButtons, { backgroundColor: colors.background }]}> 
+        {mode === 'create' ? (
+          <>
+            {onCancel && (
+              <TouchableOpacity 
+                onPress={onCancel}
+                style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBackground }]}
+                disabled={isLoading}
+              >
+                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>Discard</ThemedText>
+              </TouchableOpacity>
+            )}
+            {onSaveAsDraft && (
+              <TouchableOpacity 
+                onPress={() => {
+                  const draft = getValues();
+                  const finalDraft = { ...draft, total: recalcTotal(draft.items || []) } as any;
+                  onSaveAsDraft(finalDraft);
+                }}
+                style={[styles.button, styles.draftButton, { backgroundColor: colors.inputBackground }]}
+                disabled={isLoading}
+              >
+                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>
+                  {isLoading ? 'Saving...' : 'Save as Draft'}
+                </ThemedText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity 
+              onPress={handleSubmit(handleFormSubmit)}
+              style={[styles.button, styles.saveButton, { backgroundColor: colors.primary }]}
+              disabled={isLoading}
+            >
+              <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>
+                {isLoading ? 'Sending...' : 'Save & Send'}
+              </ThemedText>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            {onCancel && (
+              <TouchableOpacity 
+                onPress={onCancel}
+                style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBackground }]}
+                disabled={isLoading}
+              >
+                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>Cancel</ThemedText>
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity 
+              onPress={handleSubmit(handleFormSubmit)}
+              style={[styles.button, styles.saveButton, { backgroundColor: colors.primary }]}
+              disabled={isLoading}
+            >
+              <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>
+                {isLoading ? 'Saving...' : 'Save Changes'}
+              </ThemedText>
+            </TouchableOpacity>
+          </>
         )}
-        
-        <TouchableOpacity 
-          onPress={handleSubmit(handleFormSubmit)}
-          style={[styles.button, styles.saveButton, { backgroundColor: colors.primary }]}
-        >
-          <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>
-            {mode === 'create' ? 'Save Changes' : 'Save Changes'}
-          </ThemedText>
-        </TouchableOpacity>
       </View>
 
       {/* Date Picker Modal */}
@@ -331,7 +472,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onCancel }: InvoiceFo
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
         onSelectDate={(date) => {
-          reset({ ...values, createdAt: date });
+          setValue('createdAt', date, { shouldValidate: true, shouldDirty: true });
         }}
         selectedDate={values.createdAt}
       />
@@ -372,19 +513,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   button: {
-    paddingVertical: 17,
-    paddingHorizontal: 24,
+    paddingVertical: 12,
     borderRadius: 24,
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 48,
   },
   cancelButton: {
-    flex: 1,
-    minWidth: 91,
+    flex: 2,
   },
   saveButton: {
     flex: 3,
+    marginLeft: 8,
+  },
+  draftButton: {
+    flex: 2,
     marginLeft: 8,
   },
   buttonText: {

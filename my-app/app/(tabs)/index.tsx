@@ -1,7 +1,7 @@
 import { StyleSheet, FlatList, View } from 'react-native';
+import { useEffect, useState, useMemo } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useInvoices } from '@/hooks/useInvoices';
 import { Invoice } from '@/types/Invoice';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
@@ -10,31 +10,39 @@ import ToolbarComponent from '@/components/Toolbar';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { router } from 'expo-router';
+import useInvoiceStore from '@/stores/useInvoiceStore';
 export default function HomeScreen() {
-  const { invoices, loading } = useInvoices();
-  // const invoices: Invoice[] = [];
-  // const loading = false;
+  const invoices = useInvoiceStore((s) => s.invoices);
+  const isLoading = useInvoiceStore((s) => s.isLoading);
+  const isLoaded = useInvoiceStore((s) => s.isLoaded);
+  const initializeStore = useInvoiceStore((s) => s.initializeStore);
+  const [selectedFilter, setSelectedFilter] = useState<string[]>(['All']);
   const { colorScheme } = useTheme();
   const colors = Colors[colorScheme ?? 'light'];
 
+  // Initialize the store (seed from data.json on first run)
+  useEffect(() => {
+    initializeStore();
+  }, [initializeStore]);
+
+  // Filter invoices based on selected filter
+  const filteredInvoices = useMemo(() => {
+    if (selectedFilter.includes('All')) {
+      return invoices;
+    }
+    return invoices.filter(invoice => 
+      selectedFilter.some(filter => filter.toLowerCase() === invoice.status)
+    );
+  }, [invoices, selectedFilter]);
+
+  const handleFilterChange = (filters: string[]) => {
+    setSelectedFilter(filters);
+  };
   const renderInvoice = ({ item }: { item: Invoice }) => (
     <InvoiceCard invoice={item} onPress={() => router.push(`/invoice/${item.id}`)} />
   );
 
-  const getStatusStyle = (status: string, colors: any) => {
-    switch (status) {
-      case 'paid':
-        return { backgroundColor: colors.success };
-      case 'pending':
-        return { backgroundColor: colors.warning };
-      case 'draft':
-        return { backgroundColor: colors.muted };
-      default:
-        return { backgroundColor: colors.muted };
-    }
-  };
-
-  if (loading) {
+  if (!isLoaded && isLoading) {
     return (
       <ThemedView style={styles.container}>
         <ThemedText>Loading...</ThemedText>
@@ -71,18 +79,20 @@ export default function HomeScreen() {
       <ThemedView style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}> 
         <ThemedView style={{ flex: 1, flexDirection: 'column', alignItems: 'flex-start' }}>
           <ThemedText type="subtitle" style={{ color: colors.text }}>Invoices</ThemedText>
-          <ThemedText style={[styles.invoiceCount, { color: colors.text, marginTop: 2 }]}>{invoices.length} invoices</ThemedText>
+          <ThemedText style={[styles.invoiceCount, { color: colors.text, marginTop: 2 }]}>{filteredInvoices.length} invoices</ThemedText>
         </ThemedView>
-        <ToolbarComponent />
+        <ToolbarComponent onFilterChange={handleFilterChange} />
       </ThemedView>
-      { invoices.length > 0 ? (
+    { filteredInvoices.length > 0 ? (
         <FlatList
           style={{ backgroundColor: '#00000000' }}
-          data={invoices}
+          data={filteredInvoices}
           renderItem={renderInvoice}
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
+      refreshing={isLoading}
+      onRefresh={initializeStore}
         />
       ) : renderNoInvoice() }
     </ThemedView>
