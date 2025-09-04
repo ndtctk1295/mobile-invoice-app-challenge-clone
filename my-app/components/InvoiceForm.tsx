@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
@@ -11,6 +11,7 @@ import { LabeledInput } from '@/components/LabeledInput';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import { Invoice } from '@/types/Invoice';
+import { formatCurrency, calculateItemTotal, generateInvoiceId } from '@/utils/invoiceUtils';
 
 // Zod schema and derived form values type
 const AddressSchema = z.object({
@@ -53,30 +54,14 @@ interface InvoiceFormProps {
   isLoading?: boolean;
 }
 
+
+
 export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCancel, isLoading }: InvoiceFormProps) {
   const { colorScheme } = useTheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [showTerms, setShowTerms] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-
-  // Schema declared at module scope above
-
-  const generateInvoiceId = () => {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const letters = chars.substring(0, 26);
-    const numbers = chars.substring(26);
-    
-    let result = '';
-    // 2 random letters
-    for (let i = 0; i < 2; i++) {
-      result += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    // 4 random numbers
-    for (let i = 0; i < 4; i++) {
-      result += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    }
-    return result;
-  };
+  const styles = useMemo(() => createInvoiceFormStyles(colors), [colors]);
 
   const { control, handleSubmit, reset, watch, getValues, setValue, formState: { errors } } = useForm<FormValues>({
     resolver: zodResolver(InvoiceSchema),
@@ -124,6 +109,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.createdAt, values.paymentTerms]);
+
   const recalcTotal = (items: FormValues['items']) => items.reduce((sum, it) => sum + (Number(it.total) || 0), 0);
 
   const onAddItem = () => {
@@ -144,14 +130,13 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
   const title = mode === 'create' ? `New Invoice` : `Edit #${values.id}`;
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <View style={[styles.container, styles.containerWithBg]}>
       <ScrollView 
         style={styles.scrollView} 
-        contentContainerStyle={{ padding: 20 }} 
+        contentContainerStyle={styles.scrollContentStyle} 
         showsVerticalScrollIndicator={false}
       >
-        <ThemedText type="title" style={{ marginBottom: 12 }}>{title}</ThemedText>
-
+        <ThemedText type="title" style={styles.titleStyle}>{title}</ThemedText>
         {/* Bill From */}
         <Section title="Bill From">
           <Controller
@@ -162,86 +147,86 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
             )}
           />
           {errors.senderAddress?.street && (
-            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.street.message)}</ThemedText>
+            <ThemedText style={styles.errorText}>{String(errors.senderAddress.street.message)}</ThemedText>
           )}
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-            <View style={{ flex: 1 }}>
+          <View style={styles.formRow}>
+            <View style={styles.flexOne}>
               <Controller control={control} name="senderAddress.city" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
               {errors.senderAddress?.city && (
-                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.city.message)}</ThemedText>
+                <ThemedText style={styles.errorText}>{String(errors.senderAddress.city.message)}</ThemedText>
               )}
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={styles.flexOne}>
               <Controller control={control} name="senderAddress.postCode" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
               {errors.senderAddress?.postCode && (
-                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.postCode.message)}</ThemedText>
+                <ThemedText style={styles.errorText}>{String(errors.senderAddress.postCode.message)}</ThemedText>
               )}
             </View>
           </View>
-          <View style={{ marginTop: 4 }}>
+          <View style={styles.inputSpacing}>
             <Controller control={control} name="senderAddress.country" render={({ field: { onChange, value } }) => (
               <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
             )}
             />
             {errors.senderAddress?.country && (
-              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.senderAddress.country.message)}</ThemedText>
+              <ThemedText style={styles.errorText}>{String(errors.senderAddress.country.message)}</ThemedText>
             )}
           </View>
         </Section>
 
         {/* Bill To */}
-        <Section title="Bill To" style={{ marginTop: 24 }}>
+        <Section title="Bill To" style={styles.sectionSpacing}>
           <Controller control={control} name="clientName" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Client's Name" value={value} onChangeText={onChange} colors={colors} />
           )} />
           {errors.clientName && (
-            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientName.message)}</ThemedText>
+            <ThemedText style={styles.errorText}>{String(errors.clientName.message)}</ThemedText>
           )}
           <Controller control={control} name="clientEmail" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Client's Email" value={value} onChangeText={onChange} colors={colors} keyboardType="email-address" />
           )} />
           {errors.clientEmail && (
-            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientEmail.message)}</ThemedText>
+            <ThemedText style={styles.errorText}>{String(errors.clientEmail.message)}</ThemedText>
           )}
           <Controller control={control} name="clientAddress.street" render={({ field: { onChange, value } }) => (
             <LabeledInput label="Street Address" value={value} onChangeText={onChange} colors={colors} />
           )} />
           {errors.clientAddress?.street && (
-            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.street.message)}</ThemedText>
+            <ThemedText style={styles.errorText}>{String(errors.clientAddress.street.message)}</ThemedText>
           )}
-          <View style={{ flexDirection: 'row', gap: 8, marginTop: 4 }}>
-            <View style={{ flex: 1 }}>
+          <View style={styles.formRow}>
+            <View style={styles.flexOne}>
               <Controller control={control} name="clientAddress.city" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
               {errors.clientAddress?.city && (
-                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.city.message)}</ThemedText>
+                <ThemedText style={styles.errorText}>{String(errors.clientAddress.city.message)}</ThemedText>
               )}
             </View>
-            <View style={{ flex: 1 }}>
+            <View style={styles.flexOne}>
               <Controller control={control} name="clientAddress.postCode" render={({ field: { onChange, value } }) => (
                 <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
               )} />
               {errors.clientAddress?.postCode && (
-                <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.postCode.message)}</ThemedText>
+                <ThemedText style={styles.errorText}>{String(errors.clientAddress.postCode.message)}</ThemedText>
               )}
             </View>
           </View>
-          <View style={{ marginTop: 4 }}>
+          <View style={styles.inputSpacing}>
             <Controller control={control} name="clientAddress.country" render={({ field: { onChange, value } }) => (
               <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
             )} />
             {errors.clientAddress?.country && (
-              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.clientAddress.country.message)}</ThemedText>
+              <ThemedText style={styles.errorText}>{String(errors.clientAddress.country.message)}</ThemedText>
             )}
           </View>
 
           {/* Invoice Date */}
-          <View style={{ marginTop: 4 }}>
+          <View style={styles.inputSpacing}>
             <Controller control={control} name="createdAt" render={({ field: { onChange, value } }) => {
               const displayValue = value ? format(new Date(value), 'd MMM yyyy') : '';
               const isEditMode = mode === 'edit';
@@ -259,31 +244,20 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
               );
             }} />
             {errors.createdAt && (
-              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.createdAt.message)}</ThemedText>
+              <ThemedText style={styles.errorText}>{String(errors.createdAt.message)}</ThemedText>
             )}
           </View>
 
           {/* Payment Terms */}
-          <View style={{ marginTop: 4 }}>
-            <ThemedText style={{ 
-              color: colors.muted, 
-              marginBottom: 6, 
-              fontSize: 12,
-              fontWeight: '500'
-            }}>Payment Terms</ThemedText>
+          <View style={styles.inputSpacing}>
+            <ThemedText style={styles.paymentTermsLabel}>Payment Terms</ThemedText>
             <TouchableOpacity activeOpacity={0.8} onPress={() => setShowTerms(s => !s)}
-              style={[styles.input, { 
-                backgroundColor: colors.inputBackground, 
-                borderColor: colors.border,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center'
-              }]}>
-              <ThemedText style={{ fontSize: 14, fontWeight: '500' }}>Net {values.paymentTerms} Days</ThemedText>
-              <ThemedText style={{ color: colors.muted }}>▼</ThemedText>
+              style={styles.inputWithColors}>
+              <ThemedText style={styles.paymentTermsText}>Net {values.paymentTerms} Days</ThemedText>
+              <ThemedText style={styles.paymentTermsArrow}>▼</ThemedText>
             </TouchableOpacity>
             {showTerms && (
-              <ThemedView style={[styles.dropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
+              <ThemedView style={styles.dropdownWithColors}>
                 {[1, 7, 14, 30].map(v => (
                   <TouchableOpacity key={v} onPress={() => { setValue('paymentTerms', v, { shouldValidate: true, shouldDirty: true }); setShowTerms(false); }} style={styles.dropdownItem}>
                     <ThemedText>Net {v} Days</ThemedText>
@@ -294,37 +268,37 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
           </View>
 
           {/* Description */}
-          <View style={{ marginTop: 4 }}>
+          <View style={styles.inputSpacing}>
             <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
               <LabeledInput label="Project Description" value={value} onChangeText={onChange} colors={colors} />
             )} />
             {errors.description && (
-              <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.description.message)}</ThemedText>
+              <ThemedText style={styles.errorText}>{String(errors.description.message)}</ThemedText>
             )}
           </View>
         </Section>
 
         {/* Item List */}
-        <Section title="Item List" style={{ marginTop: 24 }}>
+        <Section title="Item List" style={styles.sectionSpacing}>
           {itemFields.length === 0 && (
-            <ThemedText style={{ color: colors.muted, marginBottom: 8 }}>No items. Add one below.</ThemedText>
+            <ThemedText style={styles.itemListSpacing}>No items. Add one below.</ThemedText>
           )}
           {itemFields.map((it, idx) => (
-            <View key={it.key} style={[styles.itemContainer,]}>
+            <View key={it.key} style={styles.itemContainer}>
               {/* Item Name - Full Width */}
-              <View style={{ marginBottom: 16 }}>
-                <Controller control={control} name={`items.${idx}.name` as const} render={({ field: { onChange, value } }) => (
+              <View style={styles.itemNameContainer}>
+                <Controller control={control} name={`items.${idx}.name` } render={({ field: { onChange, value } }) => (
                   <LabeledInput label="Item Name" value={String(value ?? '')} onChangeText={onChange} colors={colors} />
                 )} />
                 {errors.items?.[idx]?.name && (
-                  <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.name?.message)}</ThemedText>
+                  <ThemedText style={styles.errorText}>{String(errors.items[idx]?.name?.message)}</ThemedText>
                 )}
               </View>
               
               {/* Qty, Price, Total Row */}
               <View style={styles.itemRow}>
                 <View style={styles.qtyContainer}>
-                  <Controller control={control} name={`items.${idx}.quantity` as const} render={({ field: { onChange, value } }) => (
+                  <Controller control={control} name={`items.${idx}.quantity` } render={({ field: { onChange, value } }) => (
                     <LabeledInput
                       compact
                       label="Qty."
@@ -333,7 +307,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                         const num = Number(t);
                         onChange(num);
                         const price = Number(getValues(`items.${idx}.price`) || 0);
-                        const total = Number(((num || 0) * price).toFixed(2));
+                        const total = calculateItemTotal(num || 0, price);
                         setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
                       }}
                       colors={colors}
@@ -341,11 +315,11 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                     />
                   )} />
                   {errors.items?.[idx]?.quantity && (
-                    <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.quantity?.message)}</ThemedText>
+                    <ThemedText style={styles.errorText}>{String(errors.items[idx]?.quantity?.message)}</ThemedText>
                   )}
                 </View>
                 <View style={styles.priceContainer}>
-                  <Controller control={control} name={`items.${idx}.price` as const} render={({ field: { onChange, value } }) => (
+                  <Controller control={control} name={`items.${idx}.price` } render={({ field: { onChange, value } }) => (
                     <LabeledInput
                       compact
                       label="Price"
@@ -354,7 +328,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                         const num = Number(t);
                         onChange(num);
                         const qty = Number(getValues(`items.${idx}.quantity`) || 0);
-                        const total = Number((qty * (num || 0)).toFixed(2));
+                        const total = calculateItemTotal(qty, num || 0);
                         setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
                       }}
                       colors={colors}
@@ -362,16 +336,16 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                     />
                   )} />
                   {errors.items?.[idx]?.price && (
-                    <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items[idx]?.price?.message)}</ThemedText>
+                    <ThemedText style={styles.errorText}>{String(errors.items[idx]?.price?.message)}</ThemedText>
                   )}
                 </View>
                 <View style={styles.totalContainer}>
                   <View style={styles.totalLabelContainer}>
-                    <ThemedText style={[styles.totalLabel, { color: colors.muted }]}>Total</ThemedText>
+                    <ThemedText style={styles.totalLabelWithColor}>Total</ThemedText>
                   </View>
                   <View style={styles.totalValueContainer}>
-                    <ThemedText style={[styles.totalValue, { color: colors.text }]}>
-                      {Number(values.items?.[idx]?.total ?? 0).toFixed(2)}
+                    <ThemedText style={styles.totalValueWithColor}>
+                      {formatCurrency(Number(values.items?.[idx]?.total ?? 0))}
                     </ThemedText>
                   </View>
                 </View>
@@ -382,36 +356,36 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                     style={styles.deleteButtonContent}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
                   >
-                    <ThemedText style={[styles.deleteIcon, { color: colors.muted }]}>🗑</ThemedText>
+                    <ThemedText style={styles.deleteIconWithColor}>🗑</ThemedText>
                   </TouchableOpacity>
                 </View>
               </View>
             </View>
           ))}
           {errors.items && typeof errors.items?.message === 'string' && (
-            <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items.message)}</ThemedText>
+            <ThemedText style={styles.errorText}>{String(errors.items.message)}</ThemedText>
           )}
           <TouchableOpacity onPress={onAddItem} activeOpacity={0.9}
-            style={[styles.addButton, { backgroundColor: colors.inputBackground }]}>
-            <ThemedText style={[styles.addButtonText, { color: colors.text }]}>+ Add New Item</ThemedText>
+            style={styles.addButtonWithColors}>
+            <ThemedText style={styles.addButtonText}>+ Add New Item</ThemedText>
           </TouchableOpacity>
-          <View style={{ marginTop: 24, alignItems: 'flex-end' }}>
-            <ThemedText type="subtitle">Total: £{Number(recalcTotal(values.items || [])).toFixed(2)}</ThemedText>
+          <View style={styles.totalContainerSection}>
+            <ThemedText type="subtitle">Total: {formatCurrency(Number(recalcTotal(values.items || [])))}</ThemedText>
           </View>
         </Section>
-        <View style={{ height: 24 }} />
+        <View style={styles.heightSpacer} />
       </ScrollView>
       {/* Action Buttons */}
-      <View style={[styles.actionButtons, { backgroundColor: colors.background }]}> 
+      <View style={styles.actionButtonsWithBg}> 
         {mode === 'create' ? (
           <>
             {onCancel && (
               <TouchableOpacity 
                 onPress={onCancel}
-                style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBackground }]}
+                style={styles.cancelButtonWithColors}
                 disabled={isLoading}
               >
-                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>Discard</ThemedText>
+                <ThemedText style={styles.cancelButtonText}>Discard</ThemedText>
               </TouchableOpacity>
             )}
             {onSaveAsDraft && (
@@ -421,20 +395,20 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                   const finalDraft = { ...draft, total: recalcTotal(draft.items || []) } as any;
                   onSaveAsDraft(finalDraft);
                 }}
-                style={[styles.button, styles.draftButton, { backgroundColor: colors.inputBackground }]}
+                style={styles.draftButtonWithColors}
                 disabled={isLoading}
               >
-                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>
+                <ThemedText style={styles.draftButtonText}>
                   {isLoading ? 'Saving...' : 'Save as Draft'}
                 </ThemedText>
               </TouchableOpacity>
             )}
             <TouchableOpacity 
               onPress={handleSubmit(handleFormSubmit)}
-              style={[styles.button, styles.saveButton, { backgroundColor: colors.primary }]}
+              style={styles.saveButtonWithColors}
               disabled={isLoading}
             >
-              <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>
+              <ThemedText style={styles.saveButtonText}>
                 {isLoading ? 'Sending...' : 'Save & Send'}
               </ThemedText>
             </TouchableOpacity>
@@ -444,18 +418,18 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
             {onCancel && (
               <TouchableOpacity 
                 onPress={onCancel}
-                style={[styles.button, styles.cancelButton, { backgroundColor: colors.inputBackground }]}
+                style={styles.cancelButtonWithColors}
                 disabled={isLoading}
               >
-                <ThemedText style={[styles.buttonText, { color: colors.muted }]}>Cancel</ThemedText>
+                <ThemedText style={styles.cancelButtonText}>Cancel</ThemedText>
               </TouchableOpacity>
             )}
             <TouchableOpacity 
               onPress={handleSubmit(handleFormSubmit)}
-              style={[styles.button, styles.saveButton, { backgroundColor: colors.primary }]}
+              style={styles.saveButtonWithColors}
               disabled={isLoading}
             >
-              <ThemedText style={[styles.buttonText, { color: '#FFFFFF' }]}>
+              <ThemedText style={styles.saveButtonText}>
                 {isLoading ? 'Saving...' : 'Save Changes'}
               </ThemedText>
             </TouchableOpacity>
@@ -474,71 +448,137 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
   );
 }
 
-const styles = StyleSheet.create({
+function Section({ title, children, style  }: { 
+  title?: string; 
+  children: React.ReactNode; 
+  style?: any;
+}) {
+  const { colorScheme } = useTheme();
+  const colors = Colors[colorScheme ?? 'light'];
+  const styles = useMemo(() => createInvoiceFormStyles(colors), [colors]);
+  return (
+    <View style={[{ marginBottom: 16 }, style]}>
+      {title ? (
+        <ThemedText style={styles.titleStyle}>{title}</ThemedText>
+      ) : null}
+      {children}
+    </View>
+  );
+}
+
+const createInvoiceFormStyles = (colors: any) => StyleSheet.create({
+  // Base container styles
   container: { 
     flex: 1 
   },
   scrollView: { 
     flex: 1 
   },
+  
+  // Container and layout styles
+  containerWithBg: {
+    backgroundColor: colors.background,
+  },
+  scrollContentStyle: {
+    padding: 20,
+  },
+  titleStyle: {
+    marginBottom: 12,
+  },
+  sectionSpacing: {
+    marginTop: 24,
+  },
+  
+  // Form layout styles
+  formRow: {
+    flexDirection: 'row' ,
+    gap: 8,
+    marginTop: 4,
+  },
+  flexOne: {
+    flex: 1,
+  },
+  inputSpacing: {
+    marginTop: 4,
+  },
+  
+  // Text styles
+  errorText: {
+    color: '#EC5757',
+    marginTop: 4,
+  },
+  sectionTitle: {
+    marginBottom: 16,
+    fontSize: 12,
+    fontWeight: '700' ,
+    color: '#7C5DFA',
+    letterSpacing: 0.8,
+  },
+  
+  // Input and dropdown styles
   input: {
     borderWidth: 1,
     borderRadius: 6,
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
+  inputWithColors: {
+    backgroundColor: colors.inputBackground,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row' ,
+    justifyContent: 'space-between' ,
+    alignItems: 'center' ,
+  },
   dropdown: {
     borderWidth: 1,
     borderRadius: 8,
     marginTop: 8,
-    overflow: 'hidden',
+    overflow: 'hidden' ,
+  },
+  dropdownWithColors: {
+    backgroundColor: colors.cardBackground,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 8,
+    marginTop: 8,
+    overflow: 'hidden' ,
   },
   dropdownItem: {
     paddingHorizontal: 14,
     paddingVertical: 12,
   },
-  actionButtons: {
-    justifyContent: "center", 
-    alignItems: "stretch",
-    flexDirection: 'row',
-    paddingHorizontal: 24,
-    paddingVertical: 24,
-    gap: 8,
+  paymentTermsText: {
+    fontSize: 14,
+    fontWeight: '500' ,
   },
-  button: {
-    paddingVertical: 12,
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 48,
+  paymentTermsArrow: {
+    color: colors.muted,
   },
-  cancelButton: {
-    flex: 2,
-  },
-  saveButton: {
-    flex: 3,
-    marginLeft: 8,
-  },
-  draftButton: {
-    flex: 2,
-    marginLeft: 8,
-  },
-  buttonText: {
+  paymentTermsLabel: {
+    color: colors.muted,
+    marginBottom: 6,
     fontSize: 12,
-    lineHeight: 15,
-    letterSpacing: -0.25,
-    fontWeight: '700',
+    fontWeight: '500' ,
   },
-  // Item List Styles
+  
+  // Item list styles
+  itemListSpacing: {
+    color: colors.muted,
+    marginBottom: 8,
+  },
+  itemNameContainer: {
+    marginBottom: 16,
+  },
   itemContainer: {
-    // borderRadius: 8,
-    // borderWidth: 1,
-    // padding: 16,
     marginBottom: 16,
   },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: 'row' ,
+    alignItems: 'flex-start' ,
     gap: 12,
   },
   qtyContainer: {
@@ -549,33 +589,48 @@ const styles = StyleSheet.create({
   },
   totalContainer: {
     flex: 1,
-    alignItems: 'flex-end',
+    alignItems: 'flex-end' ,
+  },
+  totalContainerSection: {
+    marginTop: 24,
+    alignItems: 'flex-end' ,
   },
   totalLabelContainer: {
     height: 18,
     marginBottom: 6,
-    justifyContent: 'center',
+    justifyContent: 'center' ,
   },
   totalLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontWeight: '500' ,
     color: '#7E88C3',
+  },
+  totalLabelWithColor: {
+    fontSize: 12,
+    fontWeight: '500' ,
+    color: colors.muted,
   },
   totalValueContainer: {
     height: 34, 
-    justifyContent: 'center',
+    justifyContent: 'center' ,
     paddingHorizontal: 14, 
     backgroundColor: 'transparent',
   },
   totalValue: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '700' ,
     lineHeight: 20,
+  },
+  totalValueWithColor: {
+    fontSize: 14,
+    fontWeight: '700' ,
+    lineHeight: 20,
+    color: colors.text,
   },
   deleteButton: {
     width: 40,
     marginLeft: 8,
-    alignItems: 'center',
+    alignItems: 'center' ,
   },
   deleteButtonContainer: {
     height: 18, 
@@ -583,38 +638,129 @@ const styles = StyleSheet.create({
   },
   deleteButtonContent: {
     height: 34,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'center' ,
+    alignItems: 'center' ,
     padding: 8,
   },
   deleteIcon: {
     fontSize: 16,
   },
+  deleteIconWithColor: {
+    fontSize: 16,
+    color: colors.muted,
+  },
   addButton: {
     borderRadius: 24,
     paddingVertical: 14,
-    alignItems: 'center',
+    alignItems: 'center' ,
+    marginTop: 16,
+  },
+  addButtonWithColors: {
+    backgroundColor: colors.inputBackground,
+    borderRadius: 24,
+    paddingVertical: 14,
+    alignItems: 'center' ,
     marginTop: 16,
   },
   addButtonText: {
-    fontWeight: '700',
+    color: colors.text,
+    fontWeight: '700' ,
     fontSize: 14,
   },
+  
+  // Action button styles
+  actionButtons: {
+    justifyContent: 'center' , 
+    alignItems: 'stretch' ,
+    flexDirection: 'row' ,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    gap: 8,
+  },
+  actionButtonsWithBg: {
+    backgroundColor: colors.background,
+    justifyContent: 'center' ,
+    alignItems: 'stretch' ,
+    flexDirection: 'row' ,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    gap: 8,
+  },
+  button: {
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: 'center' ,
+    justifyContent: 'center' ,
+    minHeight: 48,
+  },
+  cancelButton: {
+    flex: 2,
+  },
+  cancelButtonWithColors: {
+    backgroundColor: colors.inputBackground,
+    flex: 2,
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: 'center' ,
+    justifyContent: 'center' ,
+    minHeight: 48,
+  },
+  saveButton: {
+    flex: 3,
+    marginLeft: 8,
+  },
+  saveButtonWithColors: {
+    backgroundColor: colors.primary,
+    flex: 3,
+    marginLeft: 8,
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: 'center' ,
+    justifyContent: 'center' ,
+    minHeight: 48,
+  },
+  draftButton: {
+    flex: 2,
+    marginLeft: 8,
+  },
+  draftButtonWithColors: {
+    backgroundColor: colors.inputBackground,
+    flex: 2,
+    marginLeft: 8,
+    paddingVertical: 12,
+    borderRadius: 24,
+    alignItems: 'center' ,
+    justifyContent: 'center' ,
+    minHeight: 48,
+  },
+  buttonText: {
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700' ,
+  },
+  cancelButtonText: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700' ,
+  },
+  draftButtonText: {
+    color: colors.muted,
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700' ,
+  },
+  saveButtonText: {
+    color: '#FFFFFF',
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700' ,
+  },
+  heightSpacer: {
+    height: 24,
+  },
 });
-
-function Section({ title, children, style }: { title?: string; children: React.ReactNode; style?: any }) {
-  return (
-    <View style={[{ marginBottom: 16 }, style]}>
-      {title ? (
-        <ThemedText style={{ 
-          marginBottom: 16, 
-          fontSize: 12,
-          fontWeight: '700',
-          color: '#7C5DFA',
-          letterSpacing: 0.8
-        }}>{title}</ThemedText>
-      ) : null}
-      {children}
-    </View>
-  );
-}

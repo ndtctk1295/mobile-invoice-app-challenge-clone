@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Invoice } from '@/types/Invoice';
+import { generateInvoiceId, calculatePaymentDue, calculateInvoiceTotal } from '@/utils/invoiceUtils';
 import data from '@/data.json';
 
 export type InvoiceStatus = 'draft' | 'pending' | 'paid';
@@ -34,11 +35,6 @@ interface InvoiceState {
   loadMoreInvoices: () => Promise<void>;
   resetPagination: () => void;
   getInvoicesPage: (page: number, pageSize: number, allInvoices: Invoice[]) => Invoice[];
-  
-  // Utility actions
-  generateInvoiceId: () => string;
-  calculatePaymentDue: (createdAt: string, paymentTerms: number) => string;
-  calculateTotal: (items: Invoice['items']) => number;
 }
 
 const useInvoiceStore = create<InvoiceState>()(
@@ -120,44 +116,7 @@ const useInvoiceStore = create<InvoiceState>()(
         return get().getInvoiceById(id);
       },
 
-      // Generate random invoice ID (2 letters + 4 numbers)
-      generateInvoiceId: () => {
-        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const numbers = '0123456789';
-        
-        let id = '';
-        // Add 2 random letters
-        for (let i = 0; i < 2; i++) {
-          id += letters.charAt(Math.floor(Math.random() * letters.length));
-        }
-        // Add 4 random numbers
-        for (let i = 0; i < 4; i++) {
-          id += numbers.charAt(Math.floor(Math.random() * numbers.length));
-        }
-        
-        // Ensure uniqueness
-        const invoices = get().invoices;
-        while (invoices.some(invoice => invoice.id === id)) {
-          id = get().generateInvoiceId();
-        }
-        
-        return id;
-      },
-
-      // Calculate payment due date
-      calculatePaymentDue: (createdAt: string, paymentTerms: number) => {
-        const createdDate = new Date(createdAt);
-        const dueDate = new Date(createdDate);
-        dueDate.setDate(createdDate.getDate() + paymentTerms);
-        return dueDate.toISOString().split('T')[0];
-      },
-
-      // Calculate total from items
-      calculateTotal: (items: Invoice['items']) => {
-        return items.reduce((total, item) => total + (item.quantity * item.price), 0);
-      },
-
-      // Create new invoice
+      //  Create new invoice
       createInvoice: async (invoiceData: Partial<Invoice>, status: InvoiceStatus, validateRequired = false) => {
         const state = get();
 
@@ -167,7 +126,6 @@ const useInvoiceStore = create<InvoiceState>()(
             'clientName', 'clientEmail', 'clientAddress', 
             'description', 'createdAt', 'paymentTerms'
           ];
-          
           for (const field of requiredFields) {
             if (!invoiceData[field as keyof Invoice]) {
               throw new Error(`${field} is required for pending invoices`);
@@ -180,15 +138,17 @@ const useInvoiceStore = create<InvoiceState>()(
         }
 
         // Generate ID if not provided
-        const id = invoiceData.id || state.generateInvoiceId();
+        const existingInvoices = get().invoices;
+        const existingIds = existingInvoices.map(invoice => invoice.id);
+        const id = invoiceData.id || generateInvoiceId(existingIds);
 
         // Calculate payment due date
         const paymentDue = invoiceData.createdAt && invoiceData.paymentTerms
-          ? state.calculatePaymentDue(invoiceData.createdAt, invoiceData.paymentTerms)
+          ? calculatePaymentDue(invoiceData.createdAt, invoiceData.paymentTerms)
           : '';
 
         // Calculate total
-        const total = invoiceData.items ? state.calculateTotal(invoiceData.items) : 0;
+        const total = invoiceData.items ? calculateInvoiceTotal(invoiceData.items) : 0;
 
         const newInvoice: Invoice = {
           id,
@@ -239,12 +199,12 @@ const useInvoiceStore = create<InvoiceState>()(
           const invoice = state.invoices[invoiceIndex];
           const createdAt = updates.createdAt || invoice.createdAt;
           const paymentTerms = updates.paymentTerms || invoice.paymentTerms;
-          updates.paymentDue = state.calculatePaymentDue(createdAt, paymentTerms);
+          updates.paymentDue = calculatePaymentDue(createdAt, paymentTerms);
         }
 
         // Recalculate total if items changed
         if (updates.items) {
-          updates.total = state.calculateTotal(updates.items);
+          updates.total = calculateInvoiceTotal(updates.items);
         }
 
         const updatedInvoice = { ...state.invoices[invoiceIndex], ...updates };

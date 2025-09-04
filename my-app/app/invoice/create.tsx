@@ -16,16 +16,6 @@ export default function CreateInvoiceScreen() {
     setIsLoading(true);
     try {
       const newInvoice = await createInvoice(data, 'draft', false);
-      // Alert.alert(
-      //   'Success',
-      //   `Invoice ${newInvoice.id} has been saved as draft!`,
-      //   [
-      //     {
-      //       text: 'OK',
-      //       onPress: () => router.back(),
-      //     },
-      //   ]
-      // );
       router.back();
     } catch (error) {
       Alert.alert('Error', 'Failed to save invoice. Please try again.', [{ text: 'OK' }]);

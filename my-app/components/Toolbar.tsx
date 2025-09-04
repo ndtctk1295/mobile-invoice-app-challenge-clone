@@ -8,16 +8,17 @@ import { Colors } from "@/constants/Colors";
 import { useTheme } from "@/context/ThemeContext";
 import { router } from "expo-router";
 import { useState } from "react";
+import { InvoiceFilter, FilterValue, getFilterOptions } from "@/types/FilterTypes";
 
 interface ToolbarProps {
-    onFilterChange?: (filters: string[]) => void;
+    onFilterChange?: (filters: FilterValue[]) => void;
 }
 
 export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
     const { colorScheme } = useTheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [showFilters, setShowFilters] = useState(false);
-    const [selectedFilters, setSelectedFilters] = useState<string[]>(['All']);
+    const [selectedFilters, setSelectedFilters] = useState<FilterValue[]>([InvoiceFilter.ALL]);
     
     const handleNewPress = () => {
         router.push('/invoice/create');
@@ -27,21 +28,21 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
         setShowFilters(!showFilters);
     };
 
-    const handleFilterSelect = (filter: string) => {
-        let newFilters: string[];
+    const handleFilterSelect = (filter: FilterValue) => {
+        let newFilters: FilterValue[];
         
-        if (filter === 'All') {
-            newFilters = ['All'];
+        if (filter === InvoiceFilter.ALL) {
+            newFilters = [InvoiceFilter.ALL];
         } else {
             // Remove 'All' if it's selected and user selects a specific filter
-            const filtersWithoutAll = selectedFilters.filter(f => f !== 'All');
+            const filtersWithoutAll = selectedFilters.filter(f => f !== InvoiceFilter.ALL);
             
             if (selectedFilters.includes(filter)) {
                 // Remove the filter if it's already selected
                 newFilters = filtersWithoutAll.filter(f => f !== filter);
                 // If no filters left, select 'All'
                 if (newFilters.length === 0) {
-                    newFilters = ['All'];
+                    newFilters = [InvoiceFilter.ALL];
                 }
             } else {
                 // Add the filter
@@ -54,7 +55,7 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
     };
 
     const getFilterLabel = () => {
-        if (selectedFilters.includes('All') || selectedFilters.length === 0) {
+        if (selectedFilters.includes(InvoiceFilter.ALL) || selectedFilters.length === 0) {
             return 'Filter';
         } else if (selectedFilters.length === 1) {
             return selectedFilters[0];
@@ -85,7 +86,7 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
             {/* Filter Dropdown */}
             {showFilters && (
                 <ThemedView style={[styles.filterDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
-                    {['All', 'Draft', 'Pending', 'Paid'].map((filter) => (
+                    {getFilterOptions().map((filter) => (
                         <TouchableOpacity
                             key={filter}
                             style={styles.filterOption}

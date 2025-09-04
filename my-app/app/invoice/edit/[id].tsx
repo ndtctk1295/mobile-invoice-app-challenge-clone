@@ -1,12 +1,21 @@
 import { useLocalSearchParams, router } from 'expo-router';
-import React, { useState, useEffect } from 'react';
-import { Alert } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Alert, StyleSheet } from 'react-native';
 import useInvoiceStore from '@/stores/useInvoiceStore';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { InvoiceForm, FormValues } from '@/components/InvoiceForm';
 import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
+
+const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+});
 
 export default function InvoiceDetailScreen() {
     const { id } = useLocalSearchParams<{ id: string }>();
@@ -18,6 +27,9 @@ export default function InvoiceDetailScreen() {
     const { colorScheme } = useTheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [isSaving, setIsSaving] = useState(false);
+
+    // Memoize styles for performance
+    const styles = useMemo(() => createStyles(colors), [colors]);
 
     // Initialize store on component mount
     useEffect(() => {
@@ -64,7 +76,7 @@ export default function InvoiceDetailScreen() {
 
     if (isLoading && !isLoaded) {
         return (
-            <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+            <ThemedView style={styles.container}>
                 <ThemedText>Loading...</ThemedText>
             </ThemedView>
         );
@@ -72,7 +84,7 @@ export default function InvoiceDetailScreen() {
 
     if (!original) {
         return (
-            <ThemedView style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colors.background }}>
+            <ThemedView style={styles.container}>
                 <ThemedText>Invoice not found.</ThemedText>
             </ThemedView>
         );
