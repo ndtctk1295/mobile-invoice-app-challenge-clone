@@ -63,7 +63,11 @@ export function DatePicker({ visible, onClose, onSelectDate, selectedDate }: Dat
 
   const handleDateSelect = (day: number) => {
     const selectedDateObj = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
-    const formattedDate = selectedDateObj.toISOString().split('T')[0]; // YYYY-MM-DD format
+    // Format date manually to avoid timezone issues with toISOString()
+    const year = selectedDateObj.getFullYear();
+    const month = String(selectedDateObj.getMonth() + 1).padStart(2, '0');
+    const dayStr = String(selectedDateObj.getDate()).padStart(2, '0');
+    const formattedDate = `${year}-${month}-${dayStr}`; // YYYY-MM-DD format
     onSelectDate(formattedDate);
     onClose();
   };
