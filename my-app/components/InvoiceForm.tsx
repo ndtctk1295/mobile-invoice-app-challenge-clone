@@ -391,20 +391,16 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
           {errors.items && typeof errors.items?.message === 'string' && (
             <ThemedText style={{ color: '#EC5757', marginTop: 4 }}>{String(errors.items.message)}</ThemedText>
           )}
-
           <TouchableOpacity onPress={onAddItem} activeOpacity={0.9}
             style={[styles.addButton, { backgroundColor: colors.inputBackground }]}>
             <ThemedText style={[styles.addButtonText, { color: colors.text }]}>+ Add New Item</ThemedText>
           </TouchableOpacity>
-
           <View style={{ marginTop: 24, alignItems: 'flex-end' }}>
             <ThemedText type="subtitle">Total: £{Number(recalcTotal(values.items || [])).toFixed(2)}</ThemedText>
           </View>
         </Section>
-
         <View style={{ height: 24 }} />
       </ScrollView>
-
       {/* Action Buttons */}
       <View style={[styles.actionButtons, { backgroundColor: colors.background }]}> 
         {mode === 'create' ? (
@@ -466,8 +462,6 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
           </>
         )}
       </View>
-
-      {/* Date Picker Modal */}
       <DatePicker
         visible={showDatePicker}
         onClose={() => setShowDatePicker(false)}
@@ -504,8 +498,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   actionButtons: {
-    // flex: 1,
-    justifyContent: "center", // vertically center (optional)
+    justifyContent: "center", 
     alignItems: "stretch",
     flexDirection: 'row',
     paddingHorizontal: 24,
@@ -559,7 +552,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   totalLabelContainer: {
-    height: 18, // Match the label height of input fields (12px fontSize + 6px margin)
+    height: 18,
     marginBottom: 6,
     justifyContent: 'center',
   },
@@ -569,9 +562,9 @@ const styles = StyleSheet.create({
     color: '#7E88C3',
   },
   totalValueContainer: {
-    height: 34, // Match the compact input field height
+    height: 34, 
     justifyContent: 'center',
-    paddingHorizontal: 14, // Match input field padding
+    paddingHorizontal: 14, 
     backgroundColor: 'transparent',
   },
   totalValue: {
@@ -585,11 +578,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   deleteButtonContainer: {
-    height: 18, // Match label height for spacing
+    height: 18, 
     marginBottom: 6,
   },
   deleteButtonContent: {
-    height: 34, // Match input field height
+    height: 34,
     justifyContent: 'center',
     alignItems: 'center',
     padding: 8,
@@ -618,7 +611,6 @@ function Section({ title, children, style }: { title?: string; children: React.R
           fontSize: 12,
           fontWeight: '700',
           color: '#7C5DFA',
-          // textTransform: 'uppercase',
           letterSpacing: 0.8
         }}>{title}</ThemedText>
       ) : null}

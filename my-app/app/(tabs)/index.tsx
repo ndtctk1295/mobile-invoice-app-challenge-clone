@@ -1,4 +1,4 @@
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, Button } from 'react-native';
 import { useEffect, useState, useMemo } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
@@ -7,15 +7,25 @@ import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import InvoiceCard from '@/components/InvoiceCard';
 import ToolbarComponent from '@/components/Toolbar';
+import LoadingFooter from '@/components/LoadingFooter';
 import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { router } from 'expo-router';
 import useInvoiceStore from '@/stores/useInvoiceStore';
 export default function HomeScreen() {
+  // Store selectors
   const invoices = useInvoiceStore((s) => s.invoices);
   const isLoading = useInvoiceStore((s) => s.isLoading);
   const isLoaded = useInvoiceStore((s) => s.isLoaded);
   const initializeStore = useInvoiceStore((s) => s.initializeStore);
+
+  // Pagination selectors
+  const hasMoreInvoices = useInvoiceStore((s) => s.hasMoreInvoices);
+  const isLoadingMore = useInvoiceStore((s) => s.isLoadingMore);
+  const loadMoreInvoices = useInvoiceStore((s) => s.loadMoreInvoices);
+  const resetPagination = useInvoiceStore((s) => s.resetPagination);
+  const allInvoicesLoaded = useInvoiceStore((s) => s.allInvoicesLoaded);
+  
   const [selectedFilter, setSelectedFilter] = useState<string[]>(['All']);
   const { colorScheme } = useTheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -37,6 +47,15 @@ export default function HomeScreen() {
 
   const handleFilterChange = (filters: string[]) => {
     setSelectedFilter(filters);
+    // Reset pagination when filter changes
+    resetPagination();
+  };
+
+  const handleLoadMore = () => {
+    // Only load more if we have more data to load
+    if (hasMoreInvoices && !isLoadingMore) {
+      loadMoreInvoices();
+    }
   };
   const renderInvoice = ({ item }: { item: Invoice }) => (
     <InvoiceCard invoice={item} onPress={() => router.push(`/invoice/${item.id}`)} />
@@ -79,7 +98,9 @@ export default function HomeScreen() {
       <ThemedView style={[styles.header, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }]}> 
         <ThemedView style={{ flex: 1, flexDirection: 'column', alignItems: 'flex-start' }}>
           <ThemedText type="subtitle" style={{ color: colors.text }}>Invoices</ThemedText>
-          <ThemedText style={[styles.invoiceCount, { color: colors.text, marginTop: 2 }]}>{filteredInvoices.length} invoices</ThemedText>
+          <ThemedText style={[styles.invoiceCount, { color: colors.text, marginTop: 2 }]}>
+            {filteredInvoices.length} of {allInvoicesLoaded.length} invoices
+          </ThemedText>
         </ThemedView>
         <ToolbarComponent onFilterChange={handleFilterChange} />
       </ThemedView>
@@ -92,7 +113,19 @@ export default function HomeScreen() {
           contentContainerStyle={styles.listContainer}
           showsVerticalScrollIndicator={false}
           refreshing={isLoading}
-          onRefresh={initializeStore}
+          onRefresh={() => {
+            resetPagination();
+            initializeStore();
+          }}
+          // Infinite scroll props
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1} // Trigger when 10% from bottom
+          ListFooterComponent={
+            <LoadingFooter 
+              isLoading={isLoadingMore} 
+              hasMore={hasMoreInvoices} 
+            />
+          }
         />
       ) : renderNoInvoice()}
     </ThemedView>

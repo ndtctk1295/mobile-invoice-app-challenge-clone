@@ -13,6 +13,13 @@ interface InvoiceState {
   isLoading: boolean;
   error: string | null;
 
+  // Pagination state
+  currentPage: number;
+  pageSize: number;
+  hasMoreInvoices: boolean;
+  isLoadingMore: boolean;
+  allInvoicesLoaded: Invoice[]; // All invoices for filtering
+
   // Actions
   initializeStore: () => Promise<void>;
   getAllInvoices: () => Invoice[];
@@ -22,6 +29,11 @@ interface InvoiceState {
   updateInvoice: (id: string, updates: Partial<Invoice>) => Promise<Invoice>;
   deleteInvoice: (id: string) => Promise<boolean>;
   markAsPaid: (id: string) => Promise<Invoice>;
+  
+  // Pagination actions
+  loadMoreInvoices: () => Promise<void>;
+  resetPagination: () => void;
+  getInvoicesPage: (page: number, pageSize: number, allInvoices: Invoice[]) => Invoice[];
   
   // Utility actions
   generateInvoiceId: () => string;
@@ -38,10 +50,16 @@ const useInvoiceStore = create<InvoiceState>()(
       isLoading: false,
       error: null,
 
+      // Pagination initial state
+      currentPage: 1,
+      pageSize: 10,
+      hasMoreInvoices: true,
+      isLoadingMore: false,
+      allInvoicesLoaded: [],
+
       // Initialize store - seed from data.json if no persisted data exists
       initializeStore: async () => {
         const state = get();
-        
         // Only initialize once
         if (state.isLoaded) return;
 
@@ -54,16 +72,33 @@ const useInvoiceStore = create<InvoiceState>()(
           if (!hasPersistedData) {
             // First time - seed from data.json
             console.log('Seeding initial data from data.json');
-            set({ invoices: data as Invoice[] });
+            const allInvoices = data as Invoice[];
+            set({ 
+              allInvoicesLoaded: allInvoices,
+              invoices: allInvoices.slice(0, state.pageSize), // Load first page
+              hasMoreInvoices: allInvoices.length > state.pageSize,
+              currentPage: 1
+            });
+          } else {
+            // We have persisted data, set up pagination
+            set({ 
+              allInvoicesLoaded: state.invoices,
+              invoices: state.invoices.slice(0, state.pageSize),
+              hasMoreInvoices: state.invoices.length > state.pageSize,
+              currentPage: 1
+            });
           }
 
           set({ isLoaded: true, isLoading: false });
         } catch (error) {
           console.error('Failed to initialize invoice store:', error);
+          const fallbackInvoices = data as Invoice[];
           set({ 
             error: 'Failed to load invoice data',
             isLoading: false,
-            invoices: data as Invoice[], // Fallback to data.json
+            invoices: fallbackInvoices.slice(0, state.pageSize), // Load first page
+            allInvoicesLoaded: fallbackInvoices,
+            hasMoreInvoices: fallbackInvoices.length > state.pageSize,
             isLoaded: true 
           });
         }
@@ -76,7 +111,8 @@ const useInvoiceStore = create<InvoiceState>()(
 
       // Get invoice by ID
       getInvoiceById: (id: string) => {
-        return get().invoices.find(invoice => invoice.id === id);
+        return get().allInvoicesLoaded.find(invoice => invoice.id === id) || 
+               get().invoices.find(invoice => invoice.id === id);
       },
 
       // Convenience alias
@@ -182,6 +218,7 @@ const useInvoiceStore = create<InvoiceState>()(
         // Add to store
         set(state => ({
           invoices: [...state.invoices, newInvoice],
+          allInvoicesLoaded: [...state.allInvoicesLoaded, newInvoice],
           error: null
         }));
 
@@ -217,6 +254,9 @@ const useInvoiceStore = create<InvoiceState>()(
           invoices: state.invoices.map(invoice => 
             invoice.id === id ? updatedInvoice : invoice
           ),
+          allInvoicesLoaded: state.allInvoicesLoaded.map(invoice => 
+            invoice.id === id ? updatedInvoice : invoice
+          ),
           error: null
         }));
 
@@ -234,6 +274,7 @@ const useInvoiceStore = create<InvoiceState>()(
 
         set(state => ({
           invoices: state.invoices.filter(invoice => invoice.id !== id),
+          allInvoicesLoaded: state.allInvoicesLoaded.filter(invoice => invoice.id !== id),
           error: null
         }));
 
@@ -243,13 +284,72 @@ const useInvoiceStore = create<InvoiceState>()(
       // Mark invoice as paid
       markAsPaid: async (id: string) => {
         return get().updateInvoice(id, { status: 'paid' });
+      },
+
+      // Get paginated invoices (simulate server pagination)
+      getInvoicesPage: (page: number, pageSize: number, allInvoices: Invoice[]) => {
+        const startIndex = (page - 1) * pageSize;
+        const endIndex = startIndex + pageSize;
+        return allInvoices.slice(startIndex, endIndex);
+      },
+
+      // Load more invoices for infinite scroll
+      loadMoreInvoices: async () => {
+        const state = get();
+        
+        // Prevent multiple simultaneous loads
+        if (state.isLoadingMore || !state.hasMoreInvoices) return;
+
+        set({ isLoadingMore: true });
+
+        try {
+          // Simulate network delay
+          await new Promise(resolve => setTimeout(resolve, 1000));
+
+          const nextPage = state.currentPage + 1;
+          const newInvoices = state.getInvoicesPage(nextPage, state.pageSize, state.allInvoicesLoaded);
+          
+          // Check if we have more data
+          const totalInvoices = state.allInvoicesLoaded.length;
+          const loadedSoFar = nextPage * state.pageSize;
+          const hasMore = loadedSoFar < totalInvoices;
+
+          set({
+            invoices: [...state.invoices, ...newInvoices],
+            currentPage: nextPage,
+            hasMoreInvoices: hasMore,
+            isLoadingMore: false,
+          });
+
+        } catch (error) {
+          console.error('Failed to load more invoices:', error);
+          set({ 
+            isLoadingMore: false,
+            error: 'Failed to load more invoices'
+          });
+        }
+      },
+
+      // Reset pagination (useful for filters)
+      resetPagination: () => {
+        const state = get();
+        const firstPageInvoices = state.getInvoicesPage(1, state.pageSize, state.allInvoicesLoaded);
+        const hasMore = state.allInvoicesLoaded.length > state.pageSize;
+        set({
+          invoices: firstPageInvoices,
+          currentPage: 1,
+          hasMoreInvoices: hasMore,
+          isLoadingMore: false,
+        });
       }
     }),
     {
       name: 'invoice-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // Only persist the invoices array, not loading states
-      partialize: (state) => ({ invoices: state.invoices }),
+      // Only persist the invoices array, not loading states or pagination
+      partialize: (state) => ({ 
+        invoices: state.allInvoicesLoaded.length > 0 ? state.allInvoicesLoaded : state.invoices 
+      }),
     }
   )
 );

@@ -227,5 +227,1126 @@
       }
     ],
     "total": 3102.04
+  },
+  {
+    "id": "QW7845",
+    "createdAt": "2021-11-15",
+    "paymentDue": "2021-12-15",
+    "description": "Mobile App Development",
+    "paymentTerms": 30,
+    "clientName": "Sarah Johnson",
+    "clientEmail": "sarah.johnson@techcorp.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "245 Tech Avenue",
+      "city": "San Francisco",
+      "postCode": "94105",
+      "country": "United States of America"
+    },
+    "items": [
+      {
+        "name": "iOS App Development",
+        "quantity": 1,
+        "price": 8500.00,
+        "total": 8500.00
+      },
+      {
+        "name": "Android App Development",
+        "quantity": 1,
+        "price": 7800.00,
+        "total": 7800.00
+      }
+    ],
+    "total": 16300.00
+  },
+  {
+    "id": "ER9632",
+    "createdAt": "2021-11-20",
+    "paymentDue": "2021-11-27",
+    "description": "SEO Optimization",
+    "paymentTerms": 7,
+    "clientName": "Mike Chen",
+    "clientEmail": "mike@digitalmarketing.com",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "88 Digital Street",
+      "city": "Toronto",
+      "postCode": "M5V 3A4",
+      "country": "Canada"
+    },
+    "items": [
+      {
+        "name": "SEO Audit",
+        "quantity": 1,
+        "price": 450.00,
+        "total": 450.00
+      },
+      {
+        "name": "Keyword Research",
+        "quantity": 1,
+        "price": 350.00,
+        "total": 350.00
+      },
+      {
+        "name": "Content Optimization",
+        "quantity": 5,
+        "price": 120.00,
+        "total": 600.00
+      }
+    ],
+    "total": 1400.00
+  },
+  {
+    "id": "TY4567",
+    "createdAt": "2021-12-01",
+    "paymentDue": "2021-12-02",
+    "description": "Social Media Graphics",
+    "paymentTerms": 1,
+    "clientName": "Emma Rodriguez",
+    "clientEmail": "emma@socialmedia.co",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "12 Creative Lane",
+      "city": "Barcelona",
+      "postCode": "08001",
+      "country": "Spain"
+    },
+    "items": [
+      {
+        "name": "Instagram Post Design",
+        "quantity": 10,
+        "price": 25.00,
+        "total": 250.00
+      },
+      {
+        "name": "Facebook Cover Design",
+        "quantity": 2,
+        "price": 75.00,
+        "total": 150.00
+      }
+    ],
+    "total": 400.00
+  },
+  {
+    "id": "UI8901",
+    "createdAt": "2021-12-10",
+    "paymentDue": "2022-01-09",
+    "description": "E-commerce Website",
+    "paymentTerms": 30,
+    "clientName": "David Kim",
+    "clientEmail": "david.kim@retail.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "567 Commerce Boulevard",
+      "city": "Seoul",
+      "postCode": "04524",
+      "country": "South Korea"
+    },
+    "items": [
+      {
+        "name": "Frontend Development",
+        "quantity": 1,
+        "price": 5200.00,
+        "total": 5200.00
+      },
+      {
+        "name": "Backend Integration",
+        "quantity": 1,
+        "price": 3800.00,
+        "total": 3800.00
+      },
+      {
+        "name": "Payment Gateway Setup",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      }
+    ],
+    "total": 10200.00
+  },
+  {
+    "id": "OP2345",
+    "createdAt": "2021-12-15",
+    "paymentDue": "2021-12-22",
+    "description": "Corporate Identity",
+    "paymentTerms": 7,
+    "clientName": "Lisa Thompson",
+    "clientEmail": "lisa@corporate.net",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "789 Business Park",
+      "city": "Sydney",
+      "postCode": "2000",
+      "country": "Australia"
+    },
+    "items": [
+      {
+        "name": "Logo Design",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      },
+      {
+        "name": "Business Card Design",
+        "quantity": 1,
+        "price": 300.00,
+        "total": 300.00
+      },
+      {
+        "name": "Letterhead Design",
+        "quantity": 1,
+        "price": 250.00,
+        "total": 250.00
+      }
+    ],
+    "total": 2350.00
+  },
+  {
+    "id": "AS6789",
+    "createdAt": "2022-01-05",
+    "paymentDue": "2022-01-06",
+    "description": "Video Editing",
+    "paymentTerms": 1,
+    "clientName": "Carlos Martinez",
+    "clientEmail": "carlos@videostudio.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "456 Media Avenue",
+      "city": "Mexico City",
+      "postCode": "06600",
+      "country": "Mexico"
+    },
+    "items": [
+      {
+        "name": "Video Editing",
+        "quantity": 8,
+        "price": 150.00,
+        "total": 1200.00
+      },
+      {
+        "name": "Color Correction",
+        "quantity": 1,
+        "price": 400.00,
+        "total": 400.00
+      }
+    ],
+    "total": 1600.00
+  },
+  {
+    "id": "DF3456",
+    "createdAt": "2022-01-12",
+    "paymentDue": "2022-02-11",
+    "description": "Database Design",
+    "paymentTerms": 30,
+    "clientName": "Rachel Green",
+    "clientEmail": "rachel@datatech.com",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "321 Data Drive",
+      "city": "Berlin",
+      "postCode": "10115",
+      "country": "Germany"
+    },
+    "items": [
+      {
+        "name": "Database Architecture",
+        "quantity": 1,
+        "price": 2500.00,
+        "total": 2500.00
+      },
+      {
+        "name": "Performance Optimization",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      }
+    ],
+    "total": 4300.00
+  },
+  {
+    "id": "GH7890",
+    "createdAt": "2022-01-20",
+    "paymentDue": "2022-01-27",
+    "description": "UI/UX Design",
+    "paymentTerms": 7,
+    "clientName": "James Wilson",
+    "clientEmail": "james@startupco.com",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "159 Startup Street",
+      "city": "Amsterdam",
+      "postCode": "1012",
+      "country": "Netherlands"
+    },
+    "items": [
+      {
+        "name": "User Research",
+        "quantity": 1,
+        "price": 800.00,
+        "total": 800.00
+      },
+      {
+        "name": "Wireframes",
+        "quantity": 12,
+        "price": 60.00,
+        "total": 720.00
+      },
+      {
+        "name": "High-fidelity Mockups",
+        "quantity": 8,
+        "price": 120.00,
+        "total": 960.00
+      }
+    ],
+    "total": 2480.00
+  },
+  {
+    "id": "JK1234",
+    "createdAt": "2022-02-01",
+    "paymentDue": "2022-03-03",
+    "description": "Content Writing",
+    "paymentTerms": 30,
+    "clientName": "Sophie Anderson",
+    "clientEmail": "sophie@contentmarketing.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "741 Content Boulevard",
+      "city": "Stockholm",
+      "postCode": "11122",
+      "country": "Sweden"
+    },
+    "items": [
+      {
+        "name": "Blog Posts",
+        "quantity": 10,
+        "price": 85.00,
+        "total": 850.00
+      },
+      {
+        "name": "Product Descriptions",
+        "quantity": 25,
+        "price": 35.00,
+        "total": 875.00
+      }
+    ],
+    "total": 1725.00
+  },
+  {
+    "id": "LM5678",
+    "createdAt": "2022-02-10",
+    "paymentDue": "2022-02-11",
+    "description": "Photography Session",
+    "paymentTerms": 1,
+    "clientName": "Robert Brown",
+    "clientEmail": "robert@photography.com",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "852 Photo Lane",
+      "city": "Paris",
+      "postCode": "75001",
+      "country": "France"
+    },
+    "items": [
+      {
+        "name": "Product Photography",
+        "quantity": 20,
+        "price": 75.00,
+        "total": 1500.00
+      },
+      {
+        "name": "Photo Retouching",
+        "quantity": 20,
+        "price": 25.00,
+        "total": 500.00
+      }
+    ],
+    "total": 2000.00
+  },
+  {
+    "id": "NO9012",
+    "createdAt": "2022-02-18",
+    "paymentDue": "2022-02-25",
+    "description": "Cloud Migration",
+    "paymentTerms": 7,
+    "clientName": "Maria Garcia",
+    "clientEmail": "maria@cloudtech.com",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "963 Cloud Avenue",
+      "city": "Madrid",
+      "postCode": "28001",
+      "country": "Spain"
+    },
+    "items": [
+      {
+        "name": "Migration Planning",
+        "quantity": 1,
+        "price": 1500.00,
+        "total": 1500.00
+      },
+      {
+        "name": "Data Migration",
+        "quantity": 1,
+        "price": 3200.00,
+        "total": 3200.00
+      },
+      {
+        "name": "Testing & Validation",
+        "quantity": 1,
+        "price": 800.00,
+        "total": 800.00
+      }
+    ],
+    "total": 5500.00
+  },
+  {
+    "id": "PQ3456",
+    "createdAt": "2022-03-01",
+    "paymentDue": "2022-03-31",
+    "description": "DevOps Setup",
+    "paymentTerms": 30,
+    "clientName": "Kevin Lee",
+    "clientEmail": "kevin@devops.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "147 DevOps Street",
+      "city": "Singapore",
+      "postCode": "018956",
+      "country": "Singapore"
+    },
+    "items": [
+      {
+        "name": "CI/CD Pipeline Setup",
+        "quantity": 1,
+        "price": 2800.00,
+        "total": 2800.00
+      },
+      {
+        "name": "Docker Configuration",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      }
+    ],
+    "total": 4000.00
+  },
+  {
+    "id": "RS7890",
+    "createdAt": "2022-03-10",
+    "paymentDue": "2022-03-11",
+    "description": "API Development",
+    "paymentTerms": 1,
+    "clientName": "Nina Petrov",
+    "clientEmail": "nina@apiservices.com",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "258 API Boulevard",
+      "city": "Prague",
+      "postCode": "11000",
+      "country": "Czech Republic"
+    },
+    "items": [
+      {
+        "name": "REST API Development",
+        "quantity": 1,
+        "price": 3500.00,
+        "total": 3500.00
+      },
+      {
+        "name": "API Documentation",
+        "quantity": 1,
+        "price": 600.00,
+        "total": 600.00
+      }
+    ],
+    "total": 4100.00
+  },
+  {
+    "id": "TU1234",
+    "createdAt": "2022-03-18",
+    "paymentDue": "2022-03-25",
+    "description": "Security Audit",
+    "paymentTerms": 7,
+    "clientName": "Peter Smith",
+    "clientEmail": "peter@security.com",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "369 Security Drive",
+      "city": "Zurich",
+      "postCode": "8001",
+      "country": "Switzerland"
+    },
+    "items": [
+      {
+        "name": "Vulnerability Assessment",
+        "quantity": 1,
+        "price": 2200.00,
+        "total": 2200.00
+      },
+      {
+        "name": "Penetration Testing",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      }
+    ],
+    "total": 4000.00
+  },
+  {
+    "id": "VW5678",
+    "createdAt": "2022-04-01",
+    "paymentDue": "2022-05-01",
+    "description": "Machine Learning Model",
+    "paymentTerms": 30,
+    "clientName": "Dr. Amanda White",
+    "clientEmail": "amanda@airesearch.com",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "741 AI Research Center",
+      "city": "Helsinki",
+      "postCode": "00100",
+      "country": "Finland"
+    },
+    "items": [
+      {
+        "name": "Data Analysis",
+        "quantity": 1,
+        "price": 1500.00,
+        "total": 1500.00
+      },
+      {
+        "name": "Model Development",
+        "quantity": 1,
+        "price": 4500.00,
+        "total": 4500.00
+      },
+      {
+        "name": "Model Training",
+        "quantity": 1,
+        "price": 2000.00,
+        "total": 2000.00
+      }
+    ],
+    "total": 8000.00
+  },
+  {
+    "id": "XY9012",
+    "createdAt": "2022-04-10",
+    "paymentDue": "2022-04-11",
+    "description": "Blockchain Integration",
+    "paymentTerms": 1,
+    "clientName": "Zhang Wei",
+    "clientEmail": "zhang@blockchain.com",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "852 Blockchain Avenue",
+      "city": "Shanghai",
+      "postCode": "200001",
+      "country": "China"
+    },
+    "items": [
+      {
+        "name": "Smart Contract Development",
+        "quantity": 1,
+        "price": 5500.00,
+        "total": 5500.00
+      },
+      {
+        "name": "Security Testing",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      }
+    ],
+    "total": 6700.00
+  },
+  {
+    "id": "ZA3456",
+    "createdAt": "2022-04-18",
+    "paymentDue": "2022-04-25",
+    "description": "Marketing Campaign",
+    "paymentTerms": 7,
+    "clientName": "Isabella Rossi",
+    "clientEmail": "isabella@marketing.it",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "963 Marketing Plaza",
+      "city": "Milan",
+      "postCode": "20121",
+      "country": "Italy"
+    },
+    "items": [
+      {
+        "name": "Campaign Strategy",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      },
+      {
+        "name": "Creative Assets",
+        "quantity": 15,
+        "price": 80.00,
+        "total": 1200.00
+      },
+      {
+        "name": "Ad Management",
+        "quantity": 30,
+        "price": 45.00,
+        "total": 1350.00
+      }
+    ],
+    "total": 3750.00
+  },
+  {
+    "id": "BC7890",
+    "createdAt": "2022-05-01",
+    "paymentDue": "2022-05-31",
+    "description": "Data Visualization",
+    "paymentTerms": 30,
+    "clientName": "Hans Mueller",
+    "clientEmail": "hans@dataviz.de",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "147 Data Street",
+      "city": "Munich",
+      "postCode": "80331",
+      "country": "Germany"
+    },
+    "items": [
+      {
+        "name": "Dashboard Development",
+        "quantity": 1,
+        "price": 2800.00,
+        "total": 2800.00
+      },
+      {
+        "name": "Interactive Charts",
+        "quantity": 8,
+        "price": 200.00,
+        "total": 1600.00
+      }
+    ],
+    "total": 4400.00
+  },
+  {
+    "id": "DE1234",
+    "createdAt": "2022-05-10",
+    "paymentDue": "2022-05-11",
+    "description": "Voice Assistant Integration",
+    "paymentTerms": 1,
+    "clientName": "Yuki Tanaka",
+    "clientEmail": "yuki@voicetech.jp",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "258 Voice Avenue",
+      "city": "Tokyo",
+      "postCode": "100-0001",
+      "country": "Japan"
+    },
+    "items": [
+      {
+        "name": "Voice Recognition Setup",
+        "quantity": 1,
+        "price": 2500.00,
+        "total": 2500.00
+      },
+      {
+        "name": "Natural Language Processing",
+        "quantity": 1,
+        "price": 3200.00,
+        "total": 3200.00
+      }
+    ],
+    "total": 5700.00
+  },
+  {
+    "id": "FG5678",
+    "createdAt": "2022-05-18",
+    "paymentDue": "2022-05-25",
+    "description": "Chatbot Development",
+    "paymentTerms": 7,
+    "clientName": "Anna Kowalski",
+    "clientEmail": "anna@chatbot.pl",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "369 Bot Street",
+      "city": "Warsaw",
+      "postCode": "00-001",
+      "country": "Poland"
+    },
+    "items": [
+      {
+        "name": "Chatbot Logic",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      },
+      {
+        "name": "Integration Setup",
+        "quantity": 1,
+        "price": 900.00,
+        "total": 900.00
+      }
+    ],
+    "total": 2700.00
+  },
+  {
+    "id": "HI9012",
+    "createdAt": "2022-06-01",
+    "paymentDue": "2022-07-01",
+    "description": "IoT Dashboard",
+    "paymentTerms": 30,
+    "clientName": "Lucas Santos",
+    "clientEmail": "lucas@iot.br",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "741 IoT Boulevard",
+      "city": "São Paulo",
+      "postCode": "01310-100",
+      "country": "Brazil"
+    },
+    "items": [
+      {
+        "name": "Sensor Integration",
+        "quantity": 1,
+        "price": 2200.00,
+        "total": 2200.00
+      },
+      {
+        "name": "Real-time Dashboard",
+        "quantity": 1,
+        "price": 3800.00,
+        "total": 3800.00
+      }
+    ],
+    "total": 6000.00
+  },
+  {
+    "id": "JK3456",
+    "createdAt": "2022-06-10",
+    "paymentDue": "2022-06-11",
+    "description": "AR/VR Experience",
+    "paymentTerms": 1,
+    "clientName": "Priya Sharma",
+    "clientEmail": "priya@arvr.in",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "852 VR Street",
+      "city": "Mumbai",
+      "postCode": "400001",
+      "country": "India"
+    },
+    "items": [
+      {
+        "name": "3D Modeling",
+        "quantity": 1,
+        "price": 3500.00,
+        "total": 3500.00
+      },
+      {
+        "name": "VR Integration",
+        "quantity": 1,
+        "price": 2800.00,
+        "total": 2800.00
+      }
+    ],
+    "total": 6300.00
+  },
+  {
+    "id": "LM7890",
+    "createdAt": "2022-06-18",
+    "paymentDue": "2022-06-25",
+    "description": "Performance Optimization",
+    "paymentTerms": 7,
+    "clientName": "Ahmed Hassan",
+    "clientEmail": "ahmed@performance.ae",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "963 Performance Avenue",
+      "city": "Dubai",
+      "postCode": "00000",
+      "country": "United Arab Emirates"
+    },
+    "items": [
+      {
+        "name": "Code Optimization",
+        "quantity": 1,
+        "price": 1500.00,
+        "total": 1500.00
+      },
+      {
+        "name": "Database Tuning",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      }
+    ],
+    "total": 2700.00
+  },
+  {
+    "id": "NO1234",
+    "createdAt": "2022-07-01",
+    "paymentDue": "2022-07-31",
+    "description": "Microservices Architecture",
+    "paymentTerms": 30,
+    "clientName": "Erik Larsson",
+    "clientEmail": "erik@microservices.se",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "147 Micro Street",
+      "city": "Stockholm",
+      "postCode": "11122",
+      "country": "Sweden"
+    },
+    "items": [
+      {
+        "name": "Architecture Design",
+        "quantity": 1,
+        "price": 3200.00,
+        "total": 3200.00
+      },
+      {
+        "name": "Service Implementation",
+        "quantity": 5,
+        "price": 800.00,
+        "total": 4000.00
+      }
+    ],
+    "total": 7200.00
+  },
+  {
+    "id": "PQ5678",
+    "createdAt": "2022-07-10",
+    "paymentDue": "2022-07-11",
+    "description": "Progressive Web App",
+    "paymentTerms": 1,
+    "clientName": "Marie Dubois",
+    "clientEmail": "marie@pwa.fr",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "258 PWA Boulevard",
+      "city": "Lyon",
+      "postCode": "69001",
+      "country": "France"
+    },
+    "items": [
+      {
+        "name": "PWA Development",
+        "quantity": 1,
+        "price": 4200.00,
+        "total": 4200.00
+      },
+      {
+        "name": "Offline Functionality",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      }
+    ],
+    "total": 6000.00
+  },
+  {
+    "id": "RS9012",
+    "createdAt": "2022-07-18",
+    "paymentDue": "2022-07-25",
+    "description": "GraphQL API",
+    "paymentTerms": 7,
+    "clientName": "Olaf Nielsen",
+    "clientEmail": "olaf@graphql.dk",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "369 GraphQL Street",
+      "city": "Copenhagen",
+      "postCode": "1050",
+      "country": "Denmark"
+    },
+    "items": [
+      {
+        "name": "Schema Design",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      },
+      {
+        "name": "Resolver Implementation",
+        "quantity": 1,
+        "price": 2800.00,
+        "total": 2800.00
+      }
+    ],
+    "total": 4000.00
+  },
+  {
+    "id": "TU3456",
+    "createdAt": "2022-08-01",
+    "paymentDue": "2022-08-31",
+    "description": "Kubernetes Deployment",
+    "paymentTerms": 30,
+    "clientName": "Dmitri Volkov",
+    "clientEmail": "dmitri@kubernetes.ru",
+    "status": "pending",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "741 Cluster Avenue",
+      "city": "Moscow",
+      "postCode": "101000",
+      "country": "Russia"
+    },
+    "items": [
+      {
+        "name": "Cluster Setup",
+        "quantity": 1,
+        "price": 2500.00,
+        "total": 2500.00
+      },
+      {
+        "name": "Application Deployment",
+        "quantity": 1,
+        "price": 1800.00,
+        "total": 1800.00
+      },
+      {
+        "name": "Monitoring Setup",
+        "quantity": 1,
+        "price": 1200.00,
+        "total": 1200.00
+      }
+    ],
+    "total": 5500.00
+  },
+  {
+    "id": "VW7890",
+    "createdAt": "2022-08-10",
+    "paymentDue": "2022-08-11",
+    "description": "Serverless Functions",
+    "paymentTerms": 1,
+    "clientName": "Fatima Al-Rashid",
+    "clientEmail": "fatima@serverless.sa",
+    "status": "draft",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "852 Lambda Street",
+      "city": "Riyadh",
+      "postCode": "11564",
+      "country": "Saudi Arabia"
+    },
+    "items": [
+      {
+        "name": "Function Development",
+        "quantity": 8,
+        "price": 300.00,
+        "total": 2400.00
+      },
+      {
+        "name": "API Gateway Setup",
+        "quantity": 1,
+        "price": 600.00,
+        "total": 600.00
+      }
+    ],
+    "total": 3000.00
+  },
+  {
+    "id": "XY1234",
+    "createdAt": "2022-08-18",
+    "paymentDue": "2022-08-25",
+    "description": "Real-time Analytics",
+    "paymentTerms": 7,
+    "clientName": "Anastasia Popov",
+    "clientEmail": "anastasia@analytics.bg",
+    "status": "paid",
+    "senderAddress": {
+      "street": "19 Union Terrace",
+      "city": "London",
+      "postCode": "E1 3EZ",
+      "country": "United Kingdom"
+    },
+    "clientAddress": {
+      "street": "963 Analytics Boulevard",
+      "city": "Sofia",
+      "postCode": "1000",
+      "country": "Bulgaria"
+    },
+    "items": [
+      {
+        "name": "Data Pipeline",
+        "quantity": 1,
+        "price": 3500.00,
+        "total": 3500.00
+      },
+      {
+        "name": "Visualization Dashboard",
+        "quantity": 1,
+        "price": 2200.00,
+        "total": 2200.00
+      }
+    ],
+    "total": 5700.00
   }
 ]
