@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { View, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, ScrollView, StyleSheet, TouchableOpacity, useColorScheme } from 'react-native';
 import { useForm, Controller, useFieldArray, type SubmitHandler } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,10 +8,11 @@ import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { DatePicker } from '@/components/DatePicker';
 import { LabeledInput } from '@/components/LabeledInput';
-import { useTheme } from '@/context/ThemeContext';
+import { CalendarIcon } from '@/components/atoms/CalendarIcon';
 import { Colors } from '@/constants/Colors';
 import { Invoice } from '@/types/Invoice';
 import { formatCurrency, calculateItemTotal, generateInvoiceId } from '@/utils/invoiceUtils';
+
 
 // Zod schema and derived form values type
 const AddressSchema = z.object({
@@ -57,7 +58,7 @@ interface InvoiceFormProps {
 
 
 export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCancel, isLoading }: InvoiceFormProps) {
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [showTerms, setShowTerms] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -113,7 +114,7 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
   const recalcTotal = (items: FormValues['items']) => items.reduce((sum, it) => sum + (Number(it.total) || 0), 0);
 
   const onAddItem = () => {
-    append({ name: '', quantity: 1, price: 0, total: 0 });
+    append({ name: '', quantity: 1, price: 0, total: 0 }); // export def
   };
 
   const onRemoveItem = (index: number) => remove(index);
@@ -128,12 +129,11 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
   };
 
   const title = mode === 'create' ? `New Invoice` : `Edit #${values.id}`;
-
   return (
-    <View style={[styles.container, styles.containerWithBg]}>
-      <ScrollView 
-        style={styles.scrollView} 
-        contentContainerStyle={styles.scrollContentStyle} 
+    <View style={StyleSheet.flatten([styles.container, styles.containerWithBg])}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContentStyle}
         showsVerticalScrollIndicator={false}
       >
         <ThemedText type="title" style={styles.titleStyle}>{title}</ThemedText>
@@ -143,86 +143,112 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
             control={control}
             name="senderAddress.street"
             render={({ field: { onChange, value } }) => (
-              <LabeledInput label="Street Address" value={value} onChangeText={onChange} colors={colors} />
+              <LabeledInput 
+                label="Street Address" 
+                value={value} 
+                onChangeText={onChange}
+                errorMessage={errors.senderAddress?.street?.message}
+              />
             )}
+            
           />
-          {errors.senderAddress?.street && (
-            <ThemedText style={styles.errorText}>{String(errors.senderAddress.street.message)}</ThemedText>
-          )}
-          <View style={styles.formRow}>
-            <View style={styles.flexOne}>
+          <View style={styles.formRow}> {/* TODO: styling nêus muốn dùng kiẻu tailưind thì cho ra global */}
+            <View style={styles.flexOne}> {/* TODO: nghĩ lại naming cho class */}
               <Controller control={control} name="senderAddress.city" render={({ field: { onChange, value } }) => (
-                <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
+                <LabeledInput 
+                  label="City" 
+                  value={value} 
+                  onChangeText={onChange} 
+                  compact 
+                  errorMessage={errors.senderAddress?.city?.message}
+                />
               )} />
-              {errors.senderAddress?.city && (
-                <ThemedText style={styles.errorText}>{String(errors.senderAddress.city.message)}</ThemedText>
-              )}
             </View>
             <View style={styles.flexOne}>
               <Controller control={control} name="senderAddress.postCode" render={({ field: { onChange, value } }) => (
-                <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
+                <LabeledInput 
+                  label="Post Code" 
+                  value={value} 
+                  onChangeText={onChange} 
+                  compact 
+                  errorMessage={errors.senderAddress?.postCode?.message}
+                />
               )} />
-              {errors.senderAddress?.postCode && (
-                <ThemedText style={styles.errorText}>{String(errors.senderAddress.postCode.message)}</ThemedText>
-              )}
             </View>
           </View>
           <View style={styles.inputSpacing}>
             <Controller control={control} name="senderAddress.country" render={({ field: { onChange, value } }) => (
-              <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
+              <LabeledInput 
+                label="Country" 
+                value={value} 
+                onChangeText={onChange} 
+                errorMessage={errors.senderAddress?.country?.message}
+              />
             )}
             />
-            {errors.senderAddress?.country && (
-              <ThemedText style={styles.errorText}>{String(errors.senderAddress.country.message)}</ThemedText>
-            )}
           </View>
         </Section>
 
         {/* Bill To */}
         <Section title="Bill To" style={styles.sectionSpacing}>
           <Controller control={control} name="clientName" render={({ field: { onChange, value } }) => (
-            <LabeledInput label="Client's Name" value={value} onChangeText={onChange} colors={colors} />
+            <LabeledInput 
+              label="Client's Name" 
+              value={value} 
+              onChangeText={onChange} 
+              errorMessage={errors.clientName?.message}
+            />
           )} />
-          {errors.clientName && (
-            <ThemedText style={styles.errorText}>{String(errors.clientName.message)}</ThemedText>
-          )}
           <Controller control={control} name="clientEmail" render={({ field: { onChange, value } }) => (
-            <LabeledInput label="Client's Email" value={value} onChangeText={onChange} colors={colors} keyboardType="email-address" />
+            <LabeledInput 
+              label="Client's Email" 
+              value={value} 
+              onChangeText={onChange} 
+              keyboardType="email-address" 
+              errorMessage={errors.clientEmail?.message}
+            />
           )} />
-          {errors.clientEmail && (
-            <ThemedText style={styles.errorText}>{String(errors.clientEmail.message)}</ThemedText>
-          )}
           <Controller control={control} name="clientAddress.street" render={({ field: { onChange, value } }) => (
-            <LabeledInput label="Street Address" value={value} onChangeText={onChange} colors={colors} />
+            <LabeledInput 
+              label="Street Address" 
+              value={value} 
+              onChangeText={onChange} 
+              errorMessage={errors.clientAddress?.street?.message}
+            />
           )} />
-          {errors.clientAddress?.street && (
-            <ThemedText style={styles.errorText}>{String(errors.clientAddress.street.message)}</ThemedText>
-          )}
           <View style={styles.formRow}>
             <View style={styles.flexOne}>
               <Controller control={control} name="clientAddress.city" render={({ field: { onChange, value } }) => (
-                <LabeledInput label="City" value={value} onChangeText={onChange} colors={colors} compact />
+                <LabeledInput 
+                  label="City" 
+                  value={value} 
+                  onChangeText={onChange} 
+                  compact 
+                  errorMessage={errors.clientAddress?.city?.message}
+                />
               )} />
-              {errors.clientAddress?.city && (
-                <ThemedText style={styles.errorText}>{String(errors.clientAddress.city.message)}</ThemedText>
-              )}
             </View>
             <View style={styles.flexOne}>
               <Controller control={control} name="clientAddress.postCode" render={({ field: { onChange, value } }) => (
-                <LabeledInput label="Post Code" value={value} onChangeText={onChange} colors={colors} compact />
+                <LabeledInput 
+                  label="Post Code" 
+                  value={value} 
+                  onChangeText={onChange} 
+                  compact 
+                  errorMessage={errors.clientAddress?.postCode?.message}
+                />
               )} />
-              {errors.clientAddress?.postCode && (
-                <ThemedText style={styles.errorText}>{String(errors.clientAddress.postCode.message)}</ThemedText>
-              )}
             </View>
           </View>
           <View style={styles.inputSpacing}>
             <Controller control={control} name="clientAddress.country" render={({ field: { onChange, value } }) => (
-              <LabeledInput label="Country" value={value} onChangeText={onChange} colors={colors} />
+              <LabeledInput 
+                label="Country" 
+                value={value} 
+                onChangeText={onChange} 
+                errorMessage={errors.clientAddress?.country?.message}
+              />
             )} />
-            {errors.clientAddress?.country && (
-              <ThemedText style={styles.errorText}>{String(errors.clientAddress.country.message)}</ThemedText>
-            )}
           </View>
 
           {/* Invoice Date */}
@@ -235,17 +261,14 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                   label="Invoice Date" 
                   value={displayValue} 
                   onChangeText={() => {}} // Read-only, use calendar picker
-                  colors={colors} 
-                  hasCalendarIcon
-                  onCalendarPress={isEditMode ? undefined : () => setShowDatePicker(true)}
+                  rightIcon={<CalendarIcon />}
+                  onRightIconPress={isEditMode ? undefined : () => setShowDatePicker(true)}
                   readOnly
                   disabled={isEditMode}
+                  errorMessage={errors.createdAt?.message}
                 />
               );
             }} />
-            {errors.createdAt && (
-              <ThemedText style={styles.errorText}>{String(errors.createdAt.message)}</ThemedText>
-            )}
           </View>
 
           {/* Payment Terms */}
@@ -270,11 +293,13 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
           {/* Description */}
           <View style={styles.inputSpacing}>
             <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
-              <LabeledInput label="Project Description" value={value} onChangeText={onChange} colors={colors} />
+              <LabeledInput 
+                label="Project Description" 
+                value={value} 
+                onChangeText={onChange} 
+                errorMessage={errors.description?.message}
+              />
             )} />
-            {errors.description && (
-              <ThemedText style={styles.errorText}>{String(errors.description.message)}</ThemedText>
-            )}
           </View>
         </Section>
 
@@ -288,11 +313,13 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
               {/* Item Name - Full Width */}
               <View style={styles.itemNameContainer}>
                 <Controller control={control} name={`items.${idx}.name` } render={({ field: { onChange, value } }) => (
-                  <LabeledInput label="Item Name" value={String(value ?? '')} onChangeText={onChange} colors={colors} />
+                  <LabeledInput 
+                    label="Item Name" 
+                    value={String(value ?? '')} 
+                    onChangeText={onChange} 
+                    errorMessage={errors.items?.[idx]?.name?.message}
+                  />
                 )} />
-                {errors.items?.[idx]?.name && (
-                  <ThemedText style={styles.errorText}>{String(errors.items[idx]?.name?.message)}</ThemedText>
-                )}
               </View>
               
               {/* Qty, Price, Total Row */}
@@ -310,13 +337,10 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                         const total = calculateItemTotal(num || 0, price);
                         setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
                       }}
-                      colors={colors}
                       keyboardType="numeric"
+                      errorMessage={errors.items?.[idx]?.quantity?.message}
                     />
                   )} />
-                  {errors.items?.[idx]?.quantity && (
-                    <ThemedText style={styles.errorText}>{String(errors.items[idx]?.quantity?.message)}</ThemedText>
-                  )}
                 </View>
                 <View style={styles.priceContainer}>
                   <Controller control={control} name={`items.${idx}.price` } render={({ field: { onChange, value } }) => (
@@ -331,13 +355,10 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
                         const total = calculateItemTotal(qty, num || 0);
                         setValue(`items.${idx}.total`, total, { shouldValidate: false, shouldDirty: true });
                       }}
-                      colors={colors}
                       keyboardType="decimal-pad"
+                      errorMessage={errors.items?.[idx]?.price?.message}
                     />
                   )} />
-                  {errors.items?.[idx]?.price && (
-                    <ThemedText style={styles.errorText}>{String(errors.items[idx]?.price?.message)}</ThemedText>
-                  )}
                 </View>
                 <View style={styles.totalContainer}>
                   <View style={styles.totalLabelContainer}>
@@ -370,7 +391,15 @@ export function InvoiceForm({ initialData, mode, onSubmit, onSaveAsDraft, onCanc
             <ThemedText style={styles.addButtonText}>+ Add New Item</ThemedText>
           </TouchableOpacity>
           <View style={styles.totalContainerSection}>
-            <ThemedText type="subtitle">Total: {formatCurrency(Number(recalcTotal(values.items || [])))}</ThemedText>
+            <ThemedText type="subtitle">
+              Total: {
+                formatCurrency(
+                  Number(
+                    recalcTotal(values.items || [])
+                  )
+                )
+              }
+            </ThemedText>
           </View>
         </Section>
         <View style={styles.heightSpacer} />
@@ -453,7 +482,7 @@ function Section({ title, children, style  }: {
   children: React.ReactNode; 
   style?: any;
 }) {
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const styles = useMemo(() => createInvoiceFormStyles(colors), [colors]);
   return (
