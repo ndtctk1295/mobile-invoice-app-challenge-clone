@@ -87,7 +87,7 @@ export const formatCurrency = (amount: number, currency: string = '£'): string 
  * @param existingIds - Array of existing invoice IDs to check against for uniqueness
  * @returns A unique invoice ID string
  */
-export const generateInvoiceId = (existingIds: string[] = []): string => {
+export const generateInvoiceId = (existingIds: string[] = []): string => { // existing ID tự lấy tự check
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
   const numbers = '0123456789';
   

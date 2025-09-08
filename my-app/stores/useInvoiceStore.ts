@@ -21,7 +21,20 @@ interface InvoiceState {
   isLoadingMore: boolean;
   allInvoicesLoaded: Invoice[]; // All invoices for filtering
 
-  // Actions
+  // Core mutation functions
+  setInvoices: (invoices: Invoice[]) => void;
+  addInvoice: (invoice: Invoice) => void;
+  updateInvoiceById: (id: string, updates: Partial<Invoice>) => Invoice | null;
+  removeInvoiceById: (id: string) => boolean;
+  setLoadingState: (loading: boolean) => void;
+  setError: (error: string | null) => void;
+  setPaginationState: (updates: Partial<{
+    currentPage: number;
+    hasMoreInvoices: boolean;
+    isLoadingMore: boolean;
+  }>) => void;
+
+  // Business logic actions
   initializeStore: () => Promise<void>;
   getAllInvoices: () => Invoice[];
   getInvoiceById: (id: string) => Invoice | undefined;
@@ -53,13 +66,86 @@ const useInvoiceStore = create<InvoiceState>()(
       isLoadingMore: false,
       allInvoicesLoaded: [],
 
+      // Core mutation functions - these handle the basic data operations
+      setInvoices: (invoices: Invoice[]) => {
+        set({ 
+          allInvoicesLoaded: invoices,
+          invoices: invoices.slice(0, get().pageSize),
+          hasMoreInvoices: invoices.length > get().pageSize,
+          currentPage: 1
+        });
+      },
+
+      addInvoice: (invoice: Invoice) => {
+        set(state => ({
+          invoices: [...state.invoices, invoice],
+          allInvoicesLoaded: [...state.allInvoicesLoaded, invoice],
+          error: null
+        }));
+      },
+
+      updateInvoiceById: (id: string, updates: Partial<Invoice>) => {
+        const state = get();
+        const currentInvoice = state.allInvoicesLoaded.find(invoice => invoice.id === id) ||
+                              state.invoices.find(invoice => invoice.id === id);
+        
+        if (!currentInvoice) {
+          return null;
+        }
+
+        const updatedInvoice = { ...currentInvoice, ...updates };
+
+        set(state => ({
+          invoices: state.invoices.map(invoice => 
+            invoice.id === id ? updatedInvoice : invoice
+          ),
+          allInvoicesLoaded: state.allInvoicesLoaded.map(invoice => 
+            invoice.id === id ? updatedInvoice : invoice
+          ),
+          error: null
+        }));
+
+        return updatedInvoice;
+      },
+
+      removeInvoiceById: (id: string) => {
+        const state = get();
+        const invoiceExists = state.allInvoicesLoaded.some(invoice => invoice.id === id) ||
+                             state.invoices.some(invoice => invoice.id === id);
+        
+        if (!invoiceExists) {
+          return false;
+        }
+
+        set(state => ({
+          invoices: state.invoices.filter(invoice => invoice.id !== id),
+          allInvoicesLoaded: state.allInvoicesLoaded.filter(invoice => invoice.id !== id),
+          error: null
+        }));
+
+        return true;
+      },
+
+      setLoadingState: (loading: boolean) => {
+        set({ isLoading: loading });
+      },
+
+      setError: (error: string | null) => {
+        set({ error });
+      },
+
+      setPaginationState: (updates) => {
+        set(state => ({ ...state, ...updates }));
+      },
+
       // Initialize store - seed from data.json if no persisted data exists
       initializeStore: async () => {
         const state = get();
         // Only initialize once
         if (state.isLoaded) return;
 
-        set({ isLoading: true, error: null });
+        state.setLoadingState(true);
+        state.setError(null);
 
         try {
           // Check if we have persisted data
@@ -69,34 +155,20 @@ const useInvoiceStore = create<InvoiceState>()(
             // First time - seed from data.json
             console.log('Seeding initial data from data.json');
             const allInvoices = data as Invoice[];
-            set({ 
-              allInvoicesLoaded: allInvoices,
-              invoices: allInvoices.slice(0, state.pageSize), // Load first page
-              hasMoreInvoices: allInvoices.length > state.pageSize,
-              currentPage: 1
-            });
+            state.setInvoices(allInvoices);
           } else {
             // We have persisted data, set up pagination
-            set({ 
-              allInvoicesLoaded: state.invoices,
-              invoices: state.invoices.slice(0, state.pageSize),
-              hasMoreInvoices: state.invoices.length > state.pageSize,
-              currentPage: 1
-            });
+            state.setInvoices(state.invoices);
           }
 
           set({ isLoaded: true, isLoading: false });
         } catch (error) {
           console.error('Failed to initialize invoice store:', error);
           const fallbackInvoices = data as Invoice[];
-          set({ 
-            error: 'Failed to load invoice data',
-            isLoading: false,
-            invoices: fallbackInvoices.slice(0, state.pageSize), // Load first page
-            allInvoicesLoaded: fallbackInvoices,
-            hasMoreInvoices: fallbackInvoices.length > state.pageSize,
-            isLoaded: true 
-          });
+          state.setError('Failed to load invoice data');
+          state.setLoadingState(false);
+          state.setInvoices(fallbackInvoices);
+          set({ isLoaded: true });
         }
       },
 
@@ -138,7 +210,7 @@ const useInvoiceStore = create<InvoiceState>()(
         }
 
         // Generate ID if not provided
-        const existingInvoices = get().invoices;
+        const existingInvoices = state.allInvoicesLoaded.length > 0 ? state.allInvoicesLoaded : state.invoices;
         const existingIds = existingInvoices.map(invoice => invoice.id);
         const id = invoiceData.id || generateInvoiceId(existingIds);
 
@@ -175,30 +247,25 @@ const useInvoiceStore = create<InvoiceState>()(
           total
         };
 
-        // Add to store
-        set(state => ({
-          invoices: [...state.invoices, newInvoice],
-          allInvoicesLoaded: [...state.allInvoicesLoaded, newInvoice],
-          error: null
-        }));
-
+        // Use core mutation function
+        state.addInvoice(newInvoice);
         return newInvoice;
       },
 
       // Update existing invoice
       updateInvoice: async (id: string, updates: Partial<Invoice>) => {
         const state = get();
-        const invoiceIndex = state.invoices.findIndex(invoice => invoice.id === id);
         
-        if (invoiceIndex === -1) {
+        // Find the invoice first
+        const existingInvoice = state.getInvoiceById(id);
+        if (!existingInvoice) {
           throw new Error('Invoice not found');
         }
 
         // Recalculate payment due if relevant fields changed
         if (updates.createdAt || updates.paymentTerms) {
-          const invoice = state.invoices[invoiceIndex];
-          const createdAt = updates.createdAt || invoice.createdAt;
-          const paymentTerms = updates.paymentTerms || invoice.paymentTerms;
+          const createdAt = updates.createdAt || existingInvoice.createdAt;
+          const paymentTerms = updates.paymentTerms || existingInvoice.paymentTerms;
           updates.paymentDue = calculatePaymentDue(createdAt, paymentTerms);
         }
 
@@ -207,18 +274,12 @@ const useInvoiceStore = create<InvoiceState>()(
           updates.total = calculateInvoiceTotal(updates.items);
         }
 
-        const updatedInvoice = { ...state.invoices[invoiceIndex], ...updates };
-
-        // Update in store
-        set(state => ({
-          invoices: state.invoices.map(invoice => 
-            invoice.id === id ? updatedInvoice : invoice
-          ),
-          allInvoicesLoaded: state.allInvoicesLoaded.map(invoice => 
-            invoice.id === id ? updatedInvoice : invoice
-          ),
-          error: null
-        }));
+        // Use core mutation function
+        const updatedInvoice = state.updateInvoiceById(id, updates);
+        
+        if (!updatedInvoice) {
+          throw new Error('Failed to update invoice');
+        }
 
         return updatedInvoice;
       },
@@ -226,19 +287,8 @@ const useInvoiceStore = create<InvoiceState>()(
       // Delete invoice
       deleteInvoice: async (id: string) => {
         const state = get();
-        const invoiceExists = state.invoices.some(invoice => invoice.id === id);
-        
-        if (!invoiceExists) {
-          return false;
-        }
-
-        set(state => ({
-          invoices: state.invoices.filter(invoice => invoice.id !== id),
-          allInvoicesLoaded: state.allInvoicesLoaded.filter(invoice => invoice.id !== id),
-          error: null
-        }));
-
-        return true;
+        // Use core mutation function
+        return state.removeInvoiceById(id);
       },
 
       // Mark invoice as paid
@@ -260,7 +310,7 @@ const useInvoiceStore = create<InvoiceState>()(
         // Prevent multiple simultaneous loads
         if (state.isLoadingMore || !state.hasMoreInvoices) return;
 
-        set({ isLoadingMore: true });
+        state.setPaginationState({ isLoadingMore: true });
 
         try {
           // Simulate network delay
@@ -274,8 +324,12 @@ const useInvoiceStore = create<InvoiceState>()(
           const loadedSoFar = nextPage * state.pageSize;
           const hasMore = loadedSoFar < totalInvoices;
 
-          set({
+          // Update invoices and pagination state using core mutations
+          set(state => ({
             invoices: [...state.invoices, ...newInvoices],
+          }));
+
+          state.setPaginationState({
             currentPage: nextPage,
             hasMoreInvoices: hasMore,
             isLoadingMore: false,
@@ -283,10 +337,8 @@ const useInvoiceStore = create<InvoiceState>()(
 
         } catch (error) {
           console.error('Failed to load more invoices:', error);
-          set({ 
-            isLoadingMore: false,
-            error: 'Failed to load more invoices'
-          });
+          state.setPaginationState({ isLoadingMore: false });
+          state.setError('Failed to load more invoices');
         }
       },
 
@@ -295,8 +347,12 @@ const useInvoiceStore = create<InvoiceState>()(
         const state = get();
         const firstPageInvoices = state.getInvoicesPage(1, state.pageSize, state.allInvoicesLoaded);
         const hasMore = state.allInvoicesLoaded.length > state.pageSize;
+        
         set({
           invoices: firstPageInvoices,
+        });
+
+        state.setPaginationState({
           currentPage: 1,
           hasMoreInvoices: hasMore,
           isLoadingMore: false,
