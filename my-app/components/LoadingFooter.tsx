@@ -1,7 +1,6 @@
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 
 interface LoadingFooterProps {
@@ -10,7 +9,7 @@ interface LoadingFooterProps {
 }
 
 export default function LoadingFooter({ isLoading, hasMore }: LoadingFooterProps) {
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   if (!isLoading && !hasMore) {

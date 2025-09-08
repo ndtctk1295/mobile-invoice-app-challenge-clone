@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
@@ -6,66 +6,13 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
+  useColorScheme,
 } from 'react-native';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
-
-interface DeletePromptProps {
-  visible: boolean;
-  invoiceId: string;
-  onCancel: () => void;
-  onDelete: () => void;
-}
-
-export function DeletePrompt({ visible, invoiceId, onCancel, onDelete }: DeletePromptProps) {
-  const { colorScheme } = useTheme();
-  const colors = Colors[colorScheme ?? 'light'];
-
-  return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="fade"
-      onRequestClose={onCancel}
-    >
-      <View style={styles.overlay}>
-        <View style={[styles.modal, { backgroundColor: colors.cardBackground }]}>
-          <Text style={[styles.title, { color: colors.text }]}>
-            Confirm Deletion
-          </Text>
-          
-          <Text style={[styles.message, { color: colors.muted }]}>
-            Are you sure you want to delete invoice #{invoiceId}? This action cannot be undone.
-          </Text>
-          
-          <View style={styles.buttonContainer}>
-            <TouchableOpacity
-              style={[styles.button, styles.cancelButton]}
-              onPress={onCancel}
-            >
-              <Text style={[styles.buttonText, { color: colors.muted }]}>
-                Cancel
-              </Text>
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[styles.button, styles.deleteButton]}
-              onPress={onDelete}
-            >
-              <Text style={[styles.buttonText, { color: '#FFFFFF' }]}>
-                Delete
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </View>
-    </Modal>
-  );
-}
 
 const { width } = Dimensions.get('window');
 
-const styles = StyleSheet.create({
+const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
@@ -79,6 +26,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 32,
     alignItems: 'center',
+    backgroundColor: colors.cardBackground,
   },
   title: {
     fontSize: 20,
@@ -86,6 +34,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.42,
     fontWeight: '700',
     marginBottom: 16,
+    color: colors.text,
   },
   message: {
     fontSize: 12,
@@ -93,6 +42,7 @@ const styles = StyleSheet.create({
     letterSpacing: -0.25,
     textAlign: 'center',
     marginBottom: 24,
+    color: colors.muted,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -117,4 +67,74 @@ const styles = StyleSheet.create({
     letterSpacing: -0.25,
     fontWeight: '700',
   },
+  cancelButtonText: {
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700',
+    color: colors.muted,
+  },
+  deleteButtonText: {
+    fontSize: 12,
+    lineHeight: 15,
+    letterSpacing: -0.25,
+    fontWeight: '700',
+    color: '#FFFFFF',
+  },
 });
+
+interface DeletePromptProps {
+  visible: boolean;
+  invoiceId: string;
+  onCancel: () => void;
+  onDelete: () => void;
+}
+
+export function DeletePrompt({ visible, invoiceId, onCancel, onDelete }: DeletePromptProps) {
+  const colorScheme  = useColorScheme();
+  const colors = Colors[colorScheme ?? 'light'];
+
+  // Memoize styles for performance
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onCancel}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <Text style={styles.title}>
+            Confirm Deletion
+          </Text>
+          
+          <Text style={styles.message}>
+            Are you sure you want to delete invoice #{invoiceId}? This action cannot be undone.
+          </Text>
+          
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={[styles.button, styles.cancelButton]}
+              onPress={onCancel}
+            >
+              <Text style={styles.cancelButtonText}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
+            
+            <TouchableOpacity
+              style={[styles.button, styles.deleteButton]}
+              onPress={onDelete}
+            >
+              <Text style={styles.deleteButtonText}>
+                Delete
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+}

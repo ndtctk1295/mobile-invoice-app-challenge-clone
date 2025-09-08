@@ -1,7 +1,7 @@
-import { StyleSheet, Text, type TextProps } from 'react-native';
+import { StyleSheet, Text, useColorScheme, type TextProps } from 'react-native';
+import { useMemo } from 'react';
 
 import { useThemeColor } from '@/hooks/useThemeColor';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
@@ -17,17 +17,31 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   // const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  
+  // Memoize type-based style to avoid recomputation on every render
+  const typeStyle = useMemo(() => {
+    switch (type) {
+      case 'title':
+        return styles.title;
+      case 'defaultSemiBold':
+        return styles.defaultSemiBold;
+      case 'subtitle':
+        return styles.subtitle;
+      case 'link':
+        return styles.link;
+      case 'default':
+      default:
+        return styles.default;
+    }
+  }, [type]);
+
   return (
     <Text
       style={[
         { color: colors.text },
-        type === 'default' ? styles.default : undefined,
-        type === 'title' ? styles.title : undefined,
-        type === 'defaultSemiBold' ? styles.defaultSemiBold : undefined,
-        type === 'subtitle' ? styles.subtitle : undefined,
-        type === 'link' ? styles.link : undefined,
+        typeStyle,
         style,
       ]}
       {...rest}

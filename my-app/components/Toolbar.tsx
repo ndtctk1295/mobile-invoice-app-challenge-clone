@@ -1,24 +1,24 @@
-import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { View, StyleSheet, TouchableOpacity, useColorScheme } from "react-native";
 import { ThemedText } from "./ThemedText";
 import { ThemedView } from "./ThemedView";
 import Svg, { Path } from 'react-native-svg';
 import { SvgUri } from "react-native-svg";
 import { Asset } from "expo-asset";
 import { Colors } from "@/constants/Colors";
-import { useTheme } from "@/context/ThemeContext";
 import { router } from "expo-router";
 import { useState } from "react";
-import { InvoiceFilter, FilterValue, getFilterOptions } from "@/types/FilterTypes";
-
+import { InvoiceFilter, getFilterOptions } from "@/types/FilterTypes";
+import IconPlus from '@/assets/icon-plus.svg';
+import IconArrowDown from '@/assets/icon-arrow-down.svg';
 interface ToolbarProps {
-    onFilterChange?: (filters: FilterValue[]) => void;
+    onFilterChange?: (filters: InvoiceFilter[]) => void;
 }
 
 export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
-    const { colorScheme } = useTheme();
+    const colorScheme  = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [showFilters, setShowFilters] = useState(false);
-    const [selectedFilters, setSelectedFilters] = useState<FilterValue[]>([InvoiceFilter.ALL]);
+    const [selectedFilters, setSelectedFilters] = useState<InvoiceFilter[]>([InvoiceFilter.ALL]);
     
     const handleNewPress = () => {
         router.push('/invoice/create');
@@ -28,8 +28,8 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
         setShowFilters(!showFilters);
     };
 
-    const handleFilterSelect = (filter: FilterValue) => {
-        let newFilters: FilterValue[];
+    const handleFilterSelect = (filter: InvoiceFilter) => {
+        let newFilters: InvoiceFilter[];
         
         if (filter === InvoiceFilter.ALL) {
             newFilters = [InvoiceFilter.ALL];
@@ -75,15 +75,10 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
                 >
                     {getFilterLabel()}
                 </ThemedText>
-                <SvgUri
-                    uri={Asset.fromModule(require('@/assets/icon-arrow-down.svg')).uri}
-                    style={{marginTop: 4}}
-                    width={10}
-                    height={10}
-                />
+                <IconArrowDown width={10} height={10} style={{marginTop: 4}} />
             </TouchableOpacity>
 
-            {/* Filter Dropdown */}
+            {/* Filter Dropdown Press ra ngoài phải đóng dropdown*/}
             {showFilters && (
                 <ThemedView style={[styles.filterDropdown, { backgroundColor: colors.cardBackground, borderColor: colors.border }]}>
                     {getFilterOptions().map((filter) => (
@@ -95,11 +90,7 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
                             <View style={styles.filterOptionContent}>
                                 <View style={[styles.checkbox, selectedFilters.includes(filter) && { backgroundColor: colors.primary }]}>
                                     {selectedFilters.includes(filter) && (
-                                        <SvgUri
-                                            uri={Asset.fromModule(require('@/assets/icon-check.svg')).uri}
-                                            width={10}
-                                            height={8}
-                                        />
+                                        <IconPlus width={10} height={8} />
                                     )}
                                 </View>
                                 <ThemedText style={[styles.filterOptionText, { color: colors.text }]}>
@@ -119,11 +110,7 @@ export default function ToolbarComponent({ onFilterChange }: ToolbarProps) {
             >
                 {/* Plus icon */}
                 <View style={styles.addIconContainer}>
-                    <SvgUri
-                        uri={Asset.fromModule(require('@/assets/icon-plus.svg')).uri}
-                        width={10}
-                        height={10}
-                    />
+                    <IconPlus width={10} height={10} />
                 </View>
                 <ThemedText
                     style={{

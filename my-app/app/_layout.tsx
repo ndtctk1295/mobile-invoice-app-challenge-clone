@@ -4,15 +4,25 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-reanimated';
-import { ThemeProvider as AppThemeProvider, useTheme } from '@/context/ThemeContext';
+// import { ThemeProvider as AppThemeProvider, useTheme } from '@/context/ThemeContext';
 import { AppHeader } from '@/components/AppHeader';
 import { CustomBackButton } from '@/components/CustomBackButton';
 import { Colors } from '@/constants/Colors';
+import { useColorScheme } from 'react-native';
 
 
-function Layout() {
-  const { colorScheme } = useTheme();
+const getInvoiceScreenOptions = (colors: typeof Colors.light) => ({
+  headerShown: true,
+  headerTitle: '',
+  headerStyle: { backgroundColor: colors.background },
+  headerShadowVisible: false,
+  headerLeft: () => <CustomBackButton />,
+});
+
+export default function RootLayout() {
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const invoiceScreenOptions = getInvoiceScreenOptions(colors);
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
@@ -25,50 +35,18 @@ function Layout() {
         <Stack.Screen name="+not-found" />
         <Stack.Screen 
           name="invoice/[id]" 
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerShadowVisible: false,
-            headerLeft: () => <CustomBackButton />,
-          }}
+          options={invoiceScreenOptions}
         />
         <Stack.Screen 
           name="invoice/create" 
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerShadowVisible: false,
-            headerLeft: () => <CustomBackButton />,
-          }}
+          options={invoiceScreenOptions}
         />
         <Stack.Screen 
           name="invoice/edit/[id]" 
-          options={{
-            headerShown: true,
-            headerTitle: '',
-            headerStyle: {
-              backgroundColor: colors.background,
-            },
-            headerShadowVisible: false,
-            headerLeft: () => <CustomBackButton />,
-          }}
+          options={invoiceScreenOptions}
         />
       </Stack>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
-  );
-}
-
-export default function RootLayout() {
-  return (
-    <AppThemeProvider>
-      <Layout />
-    </AppThemeProvider>
   );
 }

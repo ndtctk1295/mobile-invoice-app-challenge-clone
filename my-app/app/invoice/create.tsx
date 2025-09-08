@@ -6,12 +6,7 @@ import useInvoiceStore from '@/stores/useInvoiceStore';
 
 export default function CreateInvoiceScreen() {
   const [isLoading, setIsLoading] = useState(false);
-  const { createInvoice, initializeStore } = useInvoiceStore();
-
-  useEffect(() => {
-    initializeStore();
-  }, [initializeStore]);
-
+  const { createInvoice} = useInvoiceStore();
   const handleSaveAsDraft = async (data: FormValues) => {
     setIsLoading(true);
     try {

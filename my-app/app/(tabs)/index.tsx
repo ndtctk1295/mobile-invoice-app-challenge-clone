@@ -1,10 +1,9 @@
-import { StyleSheet, FlatList, View } from 'react-native';
+import { StyleSheet, FlatList, View, useColorScheme } from 'react-native';
 import { useEffect, useState, useMemo } from 'react';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { Invoice } from '@/types/Invoice';
-import { InvoiceFilter, FilterValue } from '@/types/FilterTypes';
-import { useTheme } from '@/context/ThemeContext';
+import { InvoiceFilter } from '@/types/FilterTypes';
 import { Colors } from '@/constants/Colors';
 import InvoiceCard from '@/components/InvoiceCard';
 import ToolbarComponent from '@/components/Toolbar';
@@ -13,22 +12,21 @@ import { SvgUri } from 'react-native-svg';
 import { Asset } from 'expo-asset';
 import { router } from 'expo-router';
 import { useInvoiceData, useInvoicePagination, useInvoiceFilters } from '@/hooks/useInvoices';
-
+import NoInvoiceillustration from "@/assets/illustration-empty.svg"
 export default function HomeScreen() {
   const { invoices, allInvoicesLoaded, isLoading, isLoaded, initializeStore } = useInvoiceData();
   const { hasMoreInvoices, isLoadingMore, loadMoreInvoices, resetPagination } = useInvoicePagination();
-  const [selectedFilter, setSelectedFilter] = useState<FilterValue[]>([InvoiceFilter.ALL]);
-  const { colorScheme } = useTheme();
+  const [selectedFilter, setSelectedFilter] = useState<InvoiceFilter[]>([InvoiceFilter.ALL]);
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const styles = useMemo(() => createStyles(colors), [colors]);
-  
   const filteredInvoices = useInvoiceFilters(invoices, selectedFilter);
 
   useEffect(() => {
     initializeStore();
   }, [initializeStore]);
 
-  const handleFilterChange = (filters: FilterValue[]) => {
+  const handleFilterChange = (filters: InvoiceFilter[]) => {
     setSelectedFilter(filters);
     // Reset pagination when filter changes
     resetPagination();
@@ -42,7 +40,7 @@ export default function HomeScreen() {
   };
   const handleOnRefresh = () => {
     resetPagination();
-    initializeStore();
+    initializeStore(); //filter local
   }
   const renderInvoice = ({ item }: { item: Invoice }) => (
     <InvoiceCard invoice={item} onPress={() => router.push(`/invoice/${item.id}`)} />
@@ -59,14 +57,10 @@ export default function HomeScreen() {
   function renderNoInvoice(){
     return (
       <ThemedView style={StyleSheet.flatten([styles.container, styles.noInvoiceContainer])}> 
-        <View style={{ alignItems: 'center', width: '100%' }}>
+        <View style={{ alignItems: 'center', width: '100%' }}> 
           {/* Illustration from assets */}
           <View style={{ marginBottom: 32}}>
-            <SvgUri
-              uri={Asset.fromModule(require('@/assets/illustration-empty.svg')).uri}
-              width={240}
-              height={200}
-            />
+            <NoInvoiceillustration width={240} height={200} />
           </View>
           <ThemedText type="title" style={styles.noInvoiceTitle}>
             There is nothing here
@@ -116,6 +110,7 @@ export default function HomeScreen() {
   );
 }
 
+//TODO: check lai cach dung style, tim cach de khong can phai dung dynamic color nhu nay
 const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
   container: {
     flex: 1,
@@ -127,6 +122,7 @@ const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  // Color[''].m
   invoiceCount: {
     fontSize: 14,
     opacity: 0.7,

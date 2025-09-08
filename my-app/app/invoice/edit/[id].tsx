@@ -1,11 +1,10 @@
 import { useLocalSearchParams, router } from 'expo-router';
 import React, { useState, useEffect, useMemo } from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { Alert, StyleSheet, useColorScheme } from 'react-native';
 import useInvoiceStore from '@/stores/useInvoiceStore';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { InvoiceForm, FormValues } from '@/components/InvoiceForm';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 
 const createStyles = (colors: typeof Colors.light) => StyleSheet.create({
@@ -24,7 +23,7 @@ export default function InvoiceDetailScreen() {
     const initializeStore = useInvoiceStore(s => s.initializeStore);
     const updateInvoice = useInvoiceStore(s => s.updateInvoice);
     const original = useInvoiceStore().getInvoiceById(id);
-    const { colorScheme } = useTheme();
+      const colorScheme  = useColorScheme();
     const colors = Colors[colorScheme ?? 'light'];
     const [isSaving, setIsSaving] = useState(false);
 

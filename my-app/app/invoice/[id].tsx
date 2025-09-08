@@ -5,12 +5,12 @@ import {
   Text, 
   StyleSheet, 
   ScrollView, 
-  TouchableOpacity 
+  TouchableOpacity, 
+  useColorScheme
 } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
 import { DeletePrompt } from '@/components/DeletePrompt';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import { Invoice } from '@/types/Invoice';
 import { useInvoiceData, useInvoiceActions } from '@/hooks/useInvoices';
@@ -307,8 +307,7 @@ export default function InvoiceDetailScreen() {
   
   // Find the specific invoice by ID
   const invoice = invoices.find(inv => inv.id === id);
-  
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const [showDeletePrompt, setShowDeletePrompt] = useState(false);
 

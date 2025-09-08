@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react';
-import { TouchableOpacity, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, StyleSheet, View, useColorScheme } from 'react-native';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import { Invoice } from '@/types/Invoice';
 import { getInvoiceStatusColor, formatInvoiceDate, formatCurrency } from '@/utils/invoiceUtils';
@@ -80,7 +79,7 @@ type Props = {
 };
 
 const InvoiceCard: React.FC<Props> = ({ invoice, onPress }) => {
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const styles = useMemo(() => createStyles(colors), [colors]);
   const statusStyle = getInvoiceStatusColor(invoice.status, colors, colorScheme ?? 'light');

@@ -1,17 +1,16 @@
 import React from 'react';
-import { TouchableOpacity, View, StyleSheet } from 'react-native';
+import { TouchableOpacity, View, StyleSheet, useColorScheme } from 'react-native';
 import { router } from 'expo-router';
 import { ThemedText } from './ThemedText';
-import { useTheme } from '@/context/ThemeContext';
 import { Colors } from '@/constants/Colors';
 import Svg, { Path } from 'react-native-svg';
 
-interface CustomBackButtonProps {
+interface CustomBackButtonProps  {
   onPress?: () => void;
 }
 
 export function CustomBackButton({ onPress }: CustomBackButtonProps) {
-  const { colorScheme } = useTheme();
+  const colorScheme  = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = () => {
